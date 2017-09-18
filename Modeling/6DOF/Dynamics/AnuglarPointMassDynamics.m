@@ -1,0 +1,6 @@
+function angularAccel = RigidBodyDynamics(bodyAngularRate, ...
+                                                     moments, ...
+                                                     inertia)
+                                                   
+% inv(inertia)*(Moments - omega x I * omega)
+angularAccel            = inv(inertia)*moments+cross(bodyAngularRate,inertia*bodyAngularRate);  
