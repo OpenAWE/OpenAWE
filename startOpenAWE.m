@@ -12,6 +12,8 @@ catch e
   error('Casadi installation not found. Please setup casadi 3.2');
 end
 
-addpath(fullfile(rootDir,'libs'));
-addpath(fullfile(rootDir,'libs','OpenOCL'));
-StartupOC(fullfile(rootDir,'..'))
+% make sure OpenOCL is in the path and StartupOC is executed
+
+%addpath(fullfile(rootDir,'libs'));
+%addpath(fullfile(rootDir,'libs','OpenOCL'));
+%StartupOC(fullfile(rootDir,'..'))
