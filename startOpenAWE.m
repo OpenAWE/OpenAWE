@@ -16,4 +16,4 @@ end
 
 %addpath(fullfile(rootDir,'libs'));
 %addpath(fullfile(rootDir,'libs','OpenOCL'));
-%StartupOC(fullfile(rootDir,'..'))
+%StartupOCL(fullfile(rootDir,'..'))

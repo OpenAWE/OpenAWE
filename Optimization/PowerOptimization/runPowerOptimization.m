@@ -14,7 +14,7 @@ rotRef = ocp.rotRef;
 options = Solver.getOptions;
 options.nlp.controlIntervals      = CONTROL_INTERVALS;
 options.nlp.collocationOrder      = 3;
-options.nlp.ipopt.linear_solver   = 'ma27';
+options.nlp.ipopt.linear_solver   = 'mumps';
 options.nlp.detectParameters      = false;
 
 nlp = Solver.getNLP(ocp,system,options);
