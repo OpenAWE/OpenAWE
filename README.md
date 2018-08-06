@@ -5,7 +5,7 @@
 You need to setup casadi and OpenOCL first: https://github.com/JonasKoenemann/optimal-control  
 Use the StartOpenAWE.m script to add folders to the path, and run the optimizer with runPowerOptimization.m
 
-## Publications:
+## Publications
 
 Performance Assessment of a Rigid Wing Airborne Wind Energy Pumping System  
 G. Licitra, J. Koenemann, A. Buerger, P. Williams, R. Ruiterkamp, M. Diehl  
