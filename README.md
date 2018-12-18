@@ -6,6 +6,8 @@ Talk by Giovanni Licitra at the Airborne Wind Energy Conference 2017:
 
 https://videoportal.uni-freiburg.de/video/OpenAWE-An-Open-Source-Toolbox-for-the-Optimization-of-AWE-Flight-Trajectories/c7ca160a8258512a3adb052646d26c21
 
+Some parts of the toolbox are not yet published. Contact us if you are interested.
+
 ## Installation
 
 You need to setup casadi and OpenOCL first: https://github.com/JonasKoenemann/optimal-control  
@@ -55,6 +57,6 @@ This project has received funding from the European Union’s Horizon 2020 resea
 
 Use without warranty.
 
-Jonas Koenemann
-University of Freiburg, Ampyx Power
-Jonas.Koenemann [at] imtek.de
+Jonas Koenemann  
+University of Freiburg  
+Jonas.Koenemann [at] yahoo.de  
