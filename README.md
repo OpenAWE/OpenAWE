@@ -10,7 +10,7 @@ Some parts of the toolbox are not yet published. Contact us if you are intereste
 
 ## Installation
 
-You need to setup casadi and OpenOCL first: https://openocl.org
+You need to setup casadi and OpenOCL first: https://openocl.org  
 Use the StartOpenAWE.m script to add folders to the path, and run the optimizer with runPowerOptimization.m
 
 ## Publications
