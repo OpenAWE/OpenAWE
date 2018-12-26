@@ -9,6 +9,7 @@ Talk by Giovanni Licitra at the Airborne Wind Energy Conference 2017:
 
 * Get [CasADi](http://casadi.org)
 * Get [OpenOCL](https://openocl.org)
+* Get [OpenAWE](https://github.com/openawe/openawe) from the github project
 * Run StartupAWE.m
 * Run mainPowerOptimization.m
 * (optional) Get [HSL solver for iptop](http://www.hsl.rl.ac.uk/ipopt/) and set ```options.nlp.ipopt.linear_solver = 'ma27';```
