@@ -11,6 +11,7 @@ Talk by Giovanni Licitra at the Airborne Wind Energy Conference 2017:
 * get [OpenOCL](https://openocl.org)
 * run StartupAWE.m
 * run mainPowerOptimization.m
+* (optional) get [HSL solver for iptop](http://www.hsl.rl.ac.uk/ipopt/) and set ```options.nlp.ipopt.linear_solver = 'ma27';```
 
 ## Legal notice
 
