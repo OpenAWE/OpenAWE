@@ -1,4 +1,4 @@
-# OpenAWE - Airborne Wind Energy Library
+# OpenAWE - Airborne Wind Energy Toolbox
 
 <img src="http://openocl.github.io/imgs/lemn.png" width="30%"> <img hspace="10" src="http://openocl.github.io/imgs/circ.png" width="30%">
 
