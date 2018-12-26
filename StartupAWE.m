@@ -1,6 +1,6 @@
 % run this script to setup OpenAWE
 
-rootDir  = fileparts(which('startOpenAWE'));
+rootDir  = fileparts(which('StartupAWE'));
 addpath(genpath(fullfile(rootDir,'Modeling')));
 addpath(genpath(fullfile(rootDir,'Optimization')));
 
