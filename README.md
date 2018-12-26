@@ -7,11 +7,11 @@ Talk by Giovanni Licitra at the Airborne Wind Energy Conference 2017:
 
 ## Quick start
 
-* get [casadi](http://casadi.org)
-* get [OpenOCL](https://openocl.org)
-* run StartupAWE.m
-* run mainPowerOptimization.m
-* (optional) get [HSL solver for iptop](http://www.hsl.rl.ac.uk/ipopt/) and set ```options.nlp.ipopt.linear_solver = 'ma27';```
+* Get [CasADi](http://casadi.org)
+* Get [OpenOCL](https://openocl.org)
+* Run StartupAWE.m
+* Run mainPowerOptimization.m
+* (optional) Get [HSL solver for iptop](http://www.hsl.rl.ac.uk/ipopt/) and set ```options.nlp.ipopt.linear_solver = 'ma27';```
 
 ## Legal notice
 
