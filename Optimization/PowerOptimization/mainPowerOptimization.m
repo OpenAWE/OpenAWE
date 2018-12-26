@@ -19,42 +19,41 @@ options.nlp.detectParameters      = false;
 
 nlp = Solver.getNLP(ocp,system,options);
 
-nlp.setBound('wingArea',1,system.modelParams.wingArea);
-nlp.setBound('wingSpan',1,system.modelParams.wingSpan);
-nlp.setBound('chord'   ,1,system.modelParams.chord);
-nlp.setBound('mass'    ,1,system.modelParams.mass);
+nlp.setParameter('wingArea', system.modelParams.wingArea);
+nlp.setParameter('wingSpan', system.modelParams.wingSpan);
+nlp.setParameter('chord'   , system.modelParams.chord);
+nlp.setParameter('mass'    , system.modelParams.mass);
 
-nlp.setBound('w_referenceTracking'  ,1  , 1     );
-nlp.setBound('w_bodyAngularAccel'   ,1  , 1e2   );
-nlp.setBound('w_ddl'                ,1  , 1e-2  );
-nlp.setBound('w_beta'               ,1  , 1e2   );
-nlp.setBound('w_integratedWork'     ,1  , 1e-3  );
+nlp.setParameter('w_referenceTracking'  , 1     );
+nlp.setParameter('w_bodyAngularAccel'   , 1e2   );
+nlp.setParameter('w_ddl'                , 1e-2  );
+nlp.setParameter('w_beta'               , 1e2   );
+nlp.setParameter('w_integratedWork'     , 1e-3  );
 
-nlp.setBound('MAX_AIRSPEED'         ,1  , 32    );
-nlp.setBound('MIN_AIRSPEED'         ,1  , 13    );
-nlp.setBound('MAX_ALPHA'            ,1  , 0.16   );
-nlp.setBound('MIN_ALPHA'            ,1  ,-0.1   );
-nlp.setBound('MAX_BETA'             ,1  , 0.3   );
-nlp.setBound('MIN_BETA'             ,1  ,-0.3   );
-nlp.setBound('MAX_TENSION'          ,1  , 5000  );
-nlp.setBound('MIN_TENSION'          ,1  , 10    );
+nlp.setParameter('MAX_AIRSPEED'         , 32    );
+nlp.setParameter('MIN_AIRSPEED'         , 13    );
+nlp.setParameter('MAX_ALPHA'            , 0.16   );
+nlp.setParameter('MIN_ALPHA'            , -0.1   );
+nlp.setParameter('MAX_BETA'             ,  0.3   );
+nlp.setParameter('MIN_BETA'             , -0.3   );
+nlp.setParameter('MAX_TENSION'          , 5000  );
+nlp.setParameter('MIN_TENSION'          , 10    );
 
+nlp.setParameter('time',  T);
 
-nlp.setBound('time',':', T, T);
-nlp.setBound('l', ':', 1, 700);
-nlp.setBound('dl', ':', -15,20);
+nlp.setBounds('l',      1, 700);
+nlp.setBounds('dl',    -15,20);
 
+nlp.setBounds('positionNav', [-10000;-10000;-10000],[10000;10000;-100]);
+nlp.setBounds('velocityNav', -60,60);
+nlp.setBounds('rotBodyToNav', -1.1,1.1);
+nlp.setBounds('bodyAngularRate', -1,1);
 
-nlp.setBound('positionNav',':',[-10000;-10000;-10000],[10000;10000;-100]);
-nlp.setBound('velocityNav',':',-60,60);
-nlp.setBound('rotBodyToNav',':',-1.1,1.1);
-nlp.setBound('bodyAngularRate',':',-1,1);
+nlp.setBounds('bodyAngularAccel', -0.2,0.2);
+nlp.setBounds('ddl', -2.3,2.4);
 
-nlp.setBound('bodyAngularAccel',':',-0.2,0.2);
-nlp.setBound('ddl',':',-2.3,2.4);
-
-nlp.setBound('integratedWork',1,0,0);
-nlp.setBound('positionNav',1,[-10000;0;-10000],[10000;0;-100]);
+nlp.setInitialBounds('integratedWork', 0);
+nlp.setInitialBounds('positionNav', [-10000;0;-10000],[10000;0;-100]);
 
 % Create solver
 solver = Solver.getSolver(nlp,options);
@@ -76,13 +75,14 @@ nlp.interpolateGuess(vars);
 
 %% solve
 nlp.setBound('mu',1,0);
-% vars = solver.solve(vars);
+[vars,times] = solver.solve(vars);
 
 nlp.setBound('mu',1,1);
-% vars = solver.solve(vars);
+[vars,times] = solver.solve(vars);
 
-nlp.setBound('time',':', 5, T+20);
-vars = solver.solve(vars);
+nlp.setParameter('time', T+20);
+[vars,times] = solver.solve(vars);
+times = times.value;
 
 
 %% plot solution
@@ -151,8 +151,8 @@ figure;hold on;grid on;
 subplot(5,1,1);plot(airspeed);  ylabel('airspeed');
 subplot(5,1,2);plot(groundSpeed);  ylabel('groundSpeed');
 subplot(5,1,3);plot(tension');  ylabel('tension');
-subplot(5,1,4);plot(radtodeg(alpha));  ylabel('angle of attack deg');
-subplot(5,1,5);plot(radtodeg(beta));  ylabel('side slip angle deg');
+subplot(5,1,4);plot(alpha*180/pi);  ylabel('angle of attack deg');
+subplot(5,1,5);plot(beta*180/pi);  ylabel('side slip angle deg');
 
 
 

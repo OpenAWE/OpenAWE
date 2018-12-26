@@ -17,7 +17,7 @@ catch e
 end
 
 % make sure OpenOCL is in the path and StartupOCL is executed
-openocl_test = getenv('OPENOCL_TEST')
+openocl_test = getenv('OPENOCL_TEST');
 if isempty(openocl_test)
   error('Please setup OpenOCL first and run StartupOCL.m');
 end

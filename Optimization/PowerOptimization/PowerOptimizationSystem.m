@@ -8,7 +8,6 @@ classdef PowerOptimizationSystem < System
   methods   
         
     function self = PowerOptimizationSystem()
-      self = self@System();
       self.modelParams = GetModelParameters;
     end
     
