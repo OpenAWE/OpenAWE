@@ -1,5 +1,7 @@
 # OpenAWE
 
+<img src="http://openocl.github.io/imgs/lemn.png" width="30%"> <img style="padding-left=30px;" src="http://openocl.github.io/imgs/circ.png" width="30%">
+
 ## Introduction
 
 Talk by Giovanni Licitra at the Airborne Wind Energy Conference 2017:
