@@ -1,6 +1,6 @@
 # OpenAWE
 
-<img src="http://openocl.github.io/imgs/lemn.png" width="30%"> <img hspace="20" src="http://openocl.github.io/imgs/circ.png" width="30%">
+<img hspace="20" src="http://openocl.github.io/imgs/lemn.png" width="30%"> <img hspace="20" src="http://openocl.github.io/imgs/circ.png" width="30%">
 
 ## Introduction
 
