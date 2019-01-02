@@ -3,7 +3,6 @@ T = 44;
 
 system = PowerOptimizationSystem;
 system.modelParams.wind.atBaseAltitude = [8;0;0];
-
 ocp = PowerOptimizationOCP(system,CONTROL_INTERVALS,T);
 
 options = OclOptions;
@@ -61,9 +60,10 @@ vars = ocl.getInitialGuess();
 vars.get('states').get('positionNav').set(pRef);
 vars.get('time').set(T);
 vars.get('states').get('l').set(400);
-
 vars.get('states').get('velocityNav').set(vRef);
-vars.get('states').get('rotBodyToNav').set(eye(3));
+
+rotRef = squeeze(num2cell(reshape(rotRef,3,3,size(rotRef,2)),[1,2]));
+vars.get('states').get('rotBodyToNav').set(rotRef);
 
 vars.get('integratorVars').get('algVars').get('lambda').set(1);
 
