@@ -1,5 +1,6 @@
-classdef PowerOptimizationOCP < OCP
+classdef PowerOptimizationOCP < OclOCP
   properties
+    system
     N
     T
     
@@ -9,9 +10,9 @@ classdef PowerOptimizationOCP < OCP
   end
   methods
     function self = PowerOptimizationOCP(system,N,T)
-      self = self@OCP(system);
       self.N = N;
       self.T = T;
+      self.system = system;
       
       [self.pRef,self.vRef,~,self.rotRef] = getReferenceFlightPath(N,T);
       
@@ -19,7 +20,7 @@ classdef PowerOptimizationOCP < OCP
     function cost = discreteCost(self,nlpVars)
      
       
-      pTraj = nlpVars.get('states').get('positionNav').value;
+      pTraj = nlpVars.get('states').get('positionNav');
       cost = 0;
       for k=1:self.N+1
         error = pTraj(:,k)-self.pRef(:,k);
@@ -51,9 +52,9 @@ classdef PowerOptimizationOCP < OCP
       self.addPathCost(-1e-4*state.dl/endTime)
     end
     function arrivalCosts(self,state,endTime,params)
-      mu = params.get('mu').value;
-      integratedWork = state.get('integratedWork').value;
-      self.addArrivalCost( - params.w_integratedWork * mu*integratedWork/endTime.value);
+      mu = params.get('mu');
+      integratedWork = state.get('integratedWork');
+      self.addArrivalCost( - params.w_integratedWork * mu*integratedWork/endTime);
     end
     function pathConstraints(self,state,algState,controls,time,params)    
       
@@ -86,27 +87,27 @@ classdef PowerOptimizationOCP < OCP
     end    
     function boundaryConditions(self,state0,stateF,params)     
       % consistency conditions
-      ic = self.system.getInitialCondition(state0,params);
+      ic = self.system.getInitialConditions(state0.value,params.value);
       self.addBoundaryCondition(ic,'==',0);
       
       % 
-      positionNav = state0.get('positionNav').value;
-      velocityNav = state0.get('velocityNav').value;
-      rotBodyToNav = state0.get('rotBodyToNav').value;
-      bodyAngularRate = state0.get('bodyAngularRate').value;    
+      positionNav = state0.get('positionNav');
+      velocityNav = state0.get('velocityNav');
+      rotBodyToNav = state0.get('rotBodyToNav');
+      bodyAngularRate = state0.get('bodyAngularRate');    
       
       
-      positionEnd = stateF.get('positionNav').value;
+      positionEnd = stateF.get('positionNav');
       self.addBoundaryCondition(positionNav,'==',positionEnd);
       
-      velocityEnd = stateF.get('velocityNav').value;
+      velocityEnd = stateF.get('velocityNav');
       self.addBoundaryCondition(velocityNav,'==',velocityEnd);
       
-      bodyAngularRateEnd = stateF.get('bodyAngularRate').value;
+      bodyAngularRateEnd = stateF.get('bodyAngularRate');
       self.addBoundaryCondition(bodyAngularRate,'==',bodyAngularRateEnd);
       
       % periodic toration
-      rotBodyToNavEnd = stateF.get('rotBodyToNav').value;
+      rotBodyToNavEnd = stateF.get('rotBodyToNav');
       [yawEnd,pitchEnd,rollEnd] = GetYawPitchRoll(rotBodyToNavEnd);
       [yawStart,pitchStart,rollStart] = GetYawPitchRoll(rotBodyToNav);
       

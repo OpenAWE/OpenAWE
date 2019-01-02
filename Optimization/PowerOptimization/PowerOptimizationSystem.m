@@ -1,4 +1,4 @@
-classdef PowerOptimizationSystem < System
+classdef PowerOptimizationSystem < OclSystem
   
   properties
     modelParams

@@ -3,21 +3,17 @@ T = 44;
 
 system = PowerOptimizationSystem;
 system.modelParams.wind.atBaseAltitude = [8;0;0];
-
 ocp = PowerOptimizationOCP(system,CONTROL_INTERVALS,T);
 
 pRef = ocp.pRef;
 vRef = ocp.vRef;
 rotRef = ocp.rotRef;
 
-% Get and set solver options
-options = Solver.getOptions;
+options = OclOptions;
 options.nlp.controlIntervals      = CONTROL_INTERVALS;
 options.nlp.collocationOrder      = 3;
 options.nlp.ipopt.linear_solver   = 'mumps';
 options.nlp.detectParameters      = false;
-
-nlp = Solver.getNLP(ocp,system,options);
 
 nlp.setParameter('wingArea', system.modelParams.wingArea);
 nlp.setParameter('wingSpan', system.modelParams.wingSpan);
@@ -55,12 +51,46 @@ nlp.setBounds('ddl', -2.3,2.4);
 nlp.setInitialBounds('integratedWork', 0);
 nlp.setInitialBounds('positionNav', [-10000;0;-10000],[10000;0;-100]);
 
-% Create solver
-solver = Solver.getSolver(nlp,options);
+ocl.setParameter('wingArea',system.modelParams.wingArea);
+ocl.setParameter('wingSpan',system.modelParams.wingSpan);
+ocl.setParameter('chord'   ,system.modelParams.chord);
+ocl.setParameter('mass'    ,system.modelParams.mass);
+
+ocl.setParameter('w_referenceTracking'  ,1     );
+ocl.setParameter('w_bodyAngularAccel'   ,1e2   );
+ocl.setParameter('w_ddl'                ,1e-2  );
+ocl.setParameter('w_beta'               ,1e2   );
+ocl.setParameter('w_integratedWork'     ,1e-3  );
+
+ocl.setParameter('MAX_AIRSPEED'         ,32    );
+ocl.setParameter('MIN_AIRSPEED'         ,13    );
+ocl.setParameter('MAX_ALPHA'            ,0.16   );
+ocl.setParameter('MIN_ALPHA'            ,-0.1   );
+ocl.setParameter('MAX_BETA'             ,0.3   );
+ocl.setParameter('MIN_BETA'             ,-0.3   );
+ocl.setParameter('MAX_TENSION'          ,5000  );
+ocl.setParameter('MIN_TENSION'          ,10    );
+
+
+ocl.setParameter('time',T);
+
+ocl.setBounds('l', 1, 700);
+ocl.setBounds('dl',-15,20);
+
+ocl.setBounds('positionNav',[-10000;-10000;-10000],[10000;10000;-100]);
+ocl.setBounds('velocityNav',-60,60);
+ocl.setBounds('rotBodyToNav',-1.1,1.1);
+ocl.setBounds('bodyAngularRate',-1,1);
+
+ocl.setBounds('bodyAngularAccel',-0.2,0.2);
+ocl.setBounds('ddl',-2.3,2.4);
+
+ocl.setInitialBounds('integratedWork',0,0);
+ocl.setInitialBounds('positionNav',[-10000;0;-10000],[10000;0;-100]);
 
 
 %% assign initial guess
-vars = nlp.getInitialGuess;
+vars = ocl.getInitialGuess();
 
 vars.get('states').get('positionNav').set(pRef);
 vars.get('time').set(T);
@@ -71,19 +101,15 @@ vars.get('states').get('rotBodyToNav').set(rotRef);
 
 vars.get('integratorVars').get('algVars').get('lambda').set(1);
 
-nlp.interpolateGuess(vars);
-
 %% solve
-nlp.setBound('mu',1,0);
-[vars,times] = solver.solve(vars);
+ocl.setParameter('mu',0);
+vars = ocl.solve(vars);
 
-nlp.setBound('mu',1,1);
-[vars,times] = solver.solve(vars);
+ocl.setParameter('mu',1);
+% vars = ocl.solve(vars);
 
-nlp.setParameter('time', T+20);
-[vars,times] = solver.solve(vars);
-times = times.value;
-
+ocl.setParameter('time',5, T+20);
+vars = ocl.solve(vars);
 
 %% plot solution
 
