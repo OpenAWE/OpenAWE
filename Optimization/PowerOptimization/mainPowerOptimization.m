@@ -3,11 +3,8 @@ T = 44;
 
 system = PowerOptimizationSystem;
 system.modelParams.wind.atBaseAltitude = [8;0;0];
-ocp = PowerOptimizationOCP(system,CONTROL_INTERVALS,T);
 
-pRef = ocp.pRef;
-vRef = ocp.vRef;
-rotRef = ocp.rotRef;
+ocp = PowerOptimizationOCP(system,CONTROL_INTERVALS,T);
 
 options = OclOptions;
 options.nlp.controlIntervals      = CONTROL_INTERVALS;
@@ -15,41 +12,11 @@ options.nlp.collocationOrder      = 3;
 options.nlp.ipopt.linear_solver   = 'mumps';
 options.nlp.detectParameters      = false;
 
-nlp.setParameter('wingArea', system.modelParams.wingArea);
-nlp.setParameter('wingSpan', system.modelParams.wingSpan);
-nlp.setParameter('chord'   , system.modelParams.chord);
-nlp.setParameter('mass'    , system.modelParams.mass);
+ocl = OclSolver(system,ocp,options);
 
-nlp.setParameter('w_referenceTracking'  , 1     );
-nlp.setParameter('w_bodyAngularAccel'   , 1e2   );
-nlp.setParameter('w_ddl'                , 1e-2  );
-nlp.setParameter('w_beta'               , 1e2   );
-nlp.setParameter('w_integratedWork'     , 1e-3  );
-
-nlp.setParameter('MAX_AIRSPEED'         , 32    );
-nlp.setParameter('MIN_AIRSPEED'         , 13    );
-nlp.setParameter('MAX_ALPHA'            , 0.16   );
-nlp.setParameter('MIN_ALPHA'            , -0.1   );
-nlp.setParameter('MAX_BETA'             ,  0.3   );
-nlp.setParameter('MIN_BETA'             , -0.3   );
-nlp.setParameter('MAX_TENSION'          , 5000  );
-nlp.setParameter('MIN_TENSION'          , 10    );
-
-nlp.setParameter('time',  T);
-
-nlp.setBounds('l',      1, 700);
-nlp.setBounds('dl',    -15,20);
-
-nlp.setBounds('positionNav', [-10000;-10000;-10000],[10000;10000;-100]);
-nlp.setBounds('velocityNav', -60,60);
-nlp.setBounds('rotBodyToNav', -1.1,1.1);
-nlp.setBounds('bodyAngularRate', -1,1);
-
-nlp.setBounds('bodyAngularAccel', -0.2,0.2);
-nlp.setBounds('ddl', -2.3,2.4);
-
-nlp.setInitialBounds('integratedWork', 0);
-nlp.setInitialBounds('positionNav', [-10000;0;-10000],[10000;0;-100]);
+pRef = ocp.pRef;
+vRef = ocp.vRef;
+rotRef = ocp.rotRef;
 
 ocl.setParameter('wingArea',system.modelParams.wingArea);
 ocl.setParameter('wingSpan',system.modelParams.wingSpan);
@@ -70,7 +37,6 @@ ocl.setParameter('MAX_BETA'             ,0.3   );
 ocl.setParameter('MIN_BETA'             ,-0.3   );
 ocl.setParameter('MAX_TENSION'          ,5000  );
 ocl.setParameter('MIN_TENSION'          ,10    );
-
 
 ocl.setParameter('time',T);
 
@@ -97,7 +63,7 @@ vars.get('time').set(T);
 vars.get('states').get('l').set(400);
 
 vars.get('states').get('velocityNav').set(vRef);
-vars.get('states').get('rotBodyToNav').set(rotRef);
+vars.get('states').get('rotBodyToNav').set(eye(3));
 
 vars.get('integratorVars').get('algVars').get('lambda').set(1);
 
