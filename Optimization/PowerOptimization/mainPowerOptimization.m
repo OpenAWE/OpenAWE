@@ -54,7 +54,7 @@ ocl.setInitialBounds('integratedWork',0,0);
 ocl.setInitialBounds('positionNav',[-10000;0;-10000],[10000;0;-100]);
 
 
-%% assign initial guess
+% assign initial guess
 vars = ocl.getInitialGuess();
 
 vars.get('states').get('positionNav').set(pRef);
@@ -67,17 +67,20 @@ vars.get('states').get('rotBodyToNav').set(rotRef);
 
 vars.get('integratorVars').get('algVars').get('lambda').set(1);
 
-%% solve
-ocl.setParameter('mu',0);
-vars = ocl.solve(vars);
+% solve
+nlp.setParameter('mu', 0);
+[vars,times] = solver.solve(vars);
 
-ocl.setParameter('mu',1);
-% vars = ocl.solve(vars);
+nlp.setParameter('mu',1);
+[vars,times] = solver.solve(vars);
+
+nlp.setParameter('time', T+20);
+[vars,times] = solver.solve(vars);
 
 ocl.setParameter('time',5, T+20);
 vars = ocl.solve(vars);
 
-%% plot solution
+% plot solution
 
 times   = linspace(0,vars.get('time').value,CONTROL_INTERVALS+1);
 pTraj   = vars.get('states').get('positionNav').value;
