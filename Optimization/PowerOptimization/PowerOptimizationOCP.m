@@ -36,7 +36,7 @@ classdef PowerOptimizationOCP < OclOCP
     function pathCosts(self,state,algState,controls,time,endTime,params)
       bodyAngularAccel = controls.get('bodyAngularAccel');
       ddl = controls.get('ddl');
-      self.addPathCost(params.w_bodyAngularAccel * (bodyAngularAccel'*bodyAngularAccel)/endTime);
+      self.addPathCost(params.w_bodyAngularAccel * (bodyAngularAccel.'*bodyAngularAccel)/endTime);
       self.addPathCost(params.w_ddl * ddl^2/endTime);
       
       

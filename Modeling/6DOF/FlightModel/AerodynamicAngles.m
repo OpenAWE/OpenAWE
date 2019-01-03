@@ -1,7 +1,7 @@
 function [airspeed,alpha,beta] = AerodynamicAngles(velocityNav,rotBodyToNav,windNav)
 
 relativeVelocity      = velocityNav - windNav;
-vBody                 = rotBodyToNav' * relativeVelocity; 
+vBody                 = rotBodyToNav.' * relativeVelocity; 
 
 airspeed              = sqrt(relativeVelocity(1)^2 + relativeVelocity(2)^2 + relativeVelocity(3)^2);
 
