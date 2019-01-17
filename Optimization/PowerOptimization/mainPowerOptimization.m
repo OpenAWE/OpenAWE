@@ -8,8 +8,7 @@ options.nlp.ipopt.linear_solver   = 'mumps';
 options.nlp.detectParameters      = false;
 options.nlp.ipopt.max_iter        = 200;
 
-ocp = PowerOptimizationOCP;
-wind = ocp.system.modelParams.wind.atBaseAltitude;
+wind = PowerOptimizationOCP.system.modelParams.wind.atBaseAltitude;
 wind = [8;0;0];
 ocl = OclSolver(ocp.system,PowerOptimizationOCP,options);
 

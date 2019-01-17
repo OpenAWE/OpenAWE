@@ -3,15 +3,9 @@ classdef PowerOptimizationOCP < OclOCP
     system = PowerOptimizationSystem
     N = 40
     T = 44
-    
-    pRef = getReferenceFlightPath(PowerOptimizationOCP.N,PowerOptimizationOCP.T);
+    pRef = getReferenceFlightPath(40,44)
   end
-  
-  methods
-    function self = PowerOptimizationOCP()
-    end
-  end
-  
+ 
   methods (Static)
     function cost = discreteCost(self,nlpVars)
      
