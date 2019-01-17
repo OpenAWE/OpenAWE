@@ -6,18 +6,19 @@ options.nlp.controlIntervals      = CONTROL_INTERVALS;
 options.nlp.collocationOrder      = 3;
 options.nlp.ipopt.linear_solver   = 'mumps';
 options.nlp.detectParameters      = false;
-options.nlp.ipopt.max_iter        = 200;
+options.nlp.ipopt.max_iter        = 400;
 
-wind = PowerOptimizationOCP.system.modelParams.wind.atBaseAltitude;
-wind = [8;0;0];
-ocl = OclSolver(ocp.system,PowerOptimizationOCP,options);
+system = PowerOptimizationOCP.system;
+wind = system.modelParams.wind;
+wind.atBaseAltitude = [8;0;0];
+ocl = OclSolver(system,PowerOptimizationOCP,options);
 
 [pRef,vRef,aRef,rotRef] = getReferenceFlightPath(PowerOptimizationOCP.N,PowerOptimizationOCP.T);
 
-ocl.setParameter('wingArea',ocp.system.modelParams.wingArea);
-ocl.setParameter('wingSpan',ocp.system.modelParams.wingSpan);
-ocl.setParameter('chord'   ,ocp.system.modelParams.chord);
-ocl.setParameter('mass'    ,ocp.system.modelParams.mass);
+ocl.setParameter('wingArea',PowerOptimizationOCP.system.modelParams.wingArea);
+ocl.setParameter('wingSpan',PowerOptimizationOCP.system.modelParams.wingSpan);
+ocl.setParameter('chord'   ,PowerOptimizationOCP.system.modelParams.chord);
+ocl.setParameter('mass'    ,PowerOptimizationOCP.system.modelParams.mass);
 
 ocl.setParameter('w_referenceTracking'  ,1     );
 ocl.setParameter('w_bodyAngularAccel'   ,1e2   );
@@ -62,13 +63,13 @@ vars.get('states').get('velocityNav').set(vRef);
 rotRefCell = squeeze(num2cell(reshape(rotRef,3,3,size(rotRef,2)),[1,2]));
 vars.get('states').get('rotBodyToNav').set(rotRefCell);
 
-vars.get('integrator').get('algVars').get('lambda').set(1);
+%vars.get('integrator').get('algVars').get('lambda').set(1);
 
 % solve
-%ocl.setParameter('mu', 0);
-%[vars,times] = ocl.solve(vars);
-%
-%keyboard
+ocl.setParameter('mu', 0);
+[vars,times] = ocl.solve(vars);
+
+keyboard
 %
 %ocl.setParameter('mu',1);
 %[vars,times] = ocl.solve(vars);
@@ -122,7 +123,7 @@ subplot(8,1,7);plot(ddlTraj');  ylabel('ddl');
 
 airspeed = zeros(CONTROL_INTERVALS+1,1);
 groundSpeed = diag(sqrt(vTraj'*vTraj));
-tension = zTraj .* diag(sqrt(pTraj(:,2:end)'*pTraj(:,2:end)))';
+%tension = zTraj .* diag(sqrt(pTraj(:,2:end)'*pTraj(:,2:end)))';
 
 windNavAtAltitude = zeros(3,CONTROL_INTERVALS+1);
 alpha = zeros(CONTROL_INTERVALS+1,1);
@@ -140,7 +141,7 @@ end
 figure;hold on;grid on;
 subplot(5,1,1);plot(airspeed);  ylabel('airspeed');
 subplot(5,1,2);plot(groundSpeed);  ylabel('groundSpeed');
-subplot(5,1,3);plot(tension');  ylabel('tension');
+%subplot(5,1,3);plot(tension');  ylabel('tension');
 subplot(5,1,4);plot(alpha*180/pi);  ylabel('angle of attack deg');
 subplot(5,1,5);plot(beta*180/pi);  ylabel('side slip angle deg');
 
