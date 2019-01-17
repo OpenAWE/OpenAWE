@@ -129,17 +129,6 @@ classdef PowerOptimizationSystem < OclSystem
       self.setInitialCondition(cR);
     end
     
-    function simulationCallbackSetup(self)
-      self.view = CreateView(false, 0.01);
-    end
-    
-    function simulationCallback(self,state,~,controls,parameters)
-      p = state.get('positionNav').value;
-      R = state.get('rotBodyToNav').value;
-      
-      self.view = UpdateView( self.view, p, R, []);
-    end
-    
   end % methods
 end
 

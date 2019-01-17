@@ -1,17 +1,19 @@
 CONTROL_INTERVALS = 40;    % horizon discretization
 T = 44;
 
-system = PowerOptimizationSystem;
-system.modelParams.wind.atBaseAltitude = [8;0;0];
-ocp = PowerOptimizationOCP(system,CONTROL_INTERVALS,T);
+
 
 options = OclOptions;
 options.nlp.controlIntervals      = CONTROL_INTERVALS;
 options.nlp.collocationOrder      = 3;
-options.nlp.ipopt.linear_solver   = 'mumps';
+options.nlp.ipopt.linear_solver   = 'ma27';
 options.nlp.detectParameters      = false;
+options.nlp.ipopt.max_iter        = 200;
 
-ocl = OclSolver(system,ocp,options);
+ocp = PowerOptimizationOCP;
+wind = ocp.system.modelParams.wind.atBaseAltitude;
+wind = [8;0;0];
+ocl = OclSolver(ocp.system,PowerOptimizationOCP,options);
 
 pRef = ocp.pRef;
 vRef = ocp.vRef;
@@ -62,32 +64,30 @@ vars.get('time').set(T);
 vars.get('states').get('l').set(400);
 vars.get('states').get('velocityNav').set(vRef);
 
-rotRef = squeeze(num2cell(reshape(rotRef,3,3,size(rotRef,2)),[1,2]));
-vars.get('states').get('rotBodyToNav').set(rotRef);
+rotRefCell = squeeze(num2cell(reshape(rotRef,3,3,size(rotRef,2)),[1,2]));
+vars.get('states').get('rotBodyToNav').set(rotRefCell);
 
-vars.get('integratorVars').get('algVars').get('lambda').set(1);
+vars.get('integrator').get('algVars').get('lambda').set(1);
 
 % solve
-nlp.setParameter('mu', 0);
-[vars,times] = solver.solve(vars);
-
-nlp.setParameter('mu',1);
-[vars,times] = solver.solve(vars);
-
-nlp.setParameter('time', T+20);
-[vars,times] = solver.solve(vars);
-
-ocl.setParameter('time',5, T+20);
-vars = ocl.solve(vars);
+%ocl.setParameter('mu', 0);
+%[vars,times] = ocl.solve(vars);
+%
+%keyboard
+%
+%ocl.setParameter('mu',1);
+%[vars,times] = ocl.solve(vars);
+%
+%ocl.setParameter('time',5, T+20);
+%vars = ocl.solve(vars);
 
 % plot solution
-
 times   = linspace(0,vars.get('time').value,CONTROL_INTERVALS+1);
 pTraj   = vars.get('states').get('positionNav').value;
 vTraj   = vars.get('states').get('velocityNav').value;
 wTraj   = vars.get('states').get('bodyAngularRate').value;
 rotTraj = vars.get('states').get('rotBodyToNav').value;
-zTraj   = vars.get('integratorVars').get('algVars',options.nlp.collocationOrder).get('lambda').value;
+zTraj   = vars.get('integrator').get('algVars',options.nlp.collocationOrder).get('lambda').value;
 lTraj   = vars.get('states').get('l').value;
 dlTraj  = vars.get('states').get('dl').value;
 
@@ -102,15 +102,15 @@ plot3(pRef(1,:),pRef(2,:),pRef(3,:),'k');
 axis equal
 
 % average power
-mechanicalWork = zTraj.*lTraj(2:end).*dlTraj(2:end);
-integratedWork = cumtrapz(times(2:end),mechanicalWork)/times(end);
-integratedWorkState = vars.get('states').get('integratedWork').value;
-integratedWorkState = integratedWorkState/times(end);
-figure;hold on;grid on;
-plot(times(2:end),mechanicalWork,'b'); 
-plot(times(2:end),integratedWork,'r');
-plot(times,integratedWorkState,'g');
-legend('mechanical work','average power (trapezoidal)','avarage power (integrator)')
+%mechanicalWork = zTraj.*lTraj(2:end).*dlTraj(2:end);
+%integratedWork = cumtrapz(times(2:end),mechanicalWork)/times(end);
+%integratedWorkState = vars.get('states').get('integratedWork').value;
+%integratedWorkState = integratedWorkState/times(end);
+%figure;hold on;grid on;
+%plot(times(2:end),mechanicalWork,'b'); 
+%plot(times(2:end),integratedWork,'r');
+%plot(times,integratedWorkState,'g');
+%legend('mechanical work','average power (trapezoidal)','avarage power (integrator)')
 
 
 
@@ -135,7 +135,7 @@ beta = zeros(CONTROL_INTERVALS+1,1);
 for k=1:CONTROL_INTERVALS+1
   p = pTraj(:,k);
   windNavAtAltitude(:,k) = GetWindAtAltitude(system.modelParams.wind,p);
-  R = reshape(rotTraj(:,k),3,3);
+  R = rotTraj{k};
   v = vTraj(:,k);
   [airspeed(k),alpha(k),beta(k)] = AerodynamicAngles( v, R, windNavAtAltitude(:,k) );
 end
@@ -154,9 +154,9 @@ subplot(5,1,5);plot(beta*180/pi);  ylabel('side slip angle deg');
 cTraj = [];
 dcTraj = [];
 for k=1:CONTROL_INTERVALS+1
-  state = vars.get('states',k);
-  ic = system.getInitialCondition(state,struct);
-  cTraj   = [cTraj,ic.value];
+  state = vars.states(:,:,k);
+  ic = system.icFun.evaluate(state.value,0);
+  cTraj   = [cTraj,;ic];
 end
 
 figure;hold on;grid on;
@@ -174,21 +174,62 @@ rotationNavToView = [1,0,0;
 
 for k=1:CONTROL_INTERVALS
   
-  R = vars.get('states',k).get('rotBodyToNav').value;
+  R = vars.states(:,:,k).get('rotBodyToNav').value;
   pTrajView = rotationNavToView*pTraj(:,k);
-  vView = rotationNavToView * vars.get('states',k).get('velocityNav').value;
+  pRefView = rotationNavToView*pRef(:,k);
+  vView = rotationNavToView * vars.states(:,:,k).get('velocityNav').value;
   rotView = rotationNavToView * R * rotationNavToView';
   rotRefView = rotationNavToView * reshape(rotRef(:,k),3,3) * rotationNavToView';
 
   % Plot cable --------------------------------------------------------
-  if dlTraj(:,k) >= 0
+  if dlTraj(k) >= 0
     line([0,pTrajView(1)],[0,pTrajView(2)],[0,pTrajView(3)],'LineWidth',0.8,'Color','g','LineStyle',':');
   else
     line([0,pTrajView(1)],[0,pTrajView(2)],[0,pTrajView(3)],'LineWidth',0.8,'Color','r','LineStyle',':');
   end
+  
+  % Plot orientation --------------------------------------------------
+
+  ex = s*rotView*[1;0;0];
+  line([pTrajView(1),pTrajView(1)+ex(1)],...
+   [pTrajView(2),pTrajView(2)+ex(2)],...
+   [pTrajView(3),pTrajView(3)+ex(3)],'LineWidth',2,'Color','r','LineStyle','-');
+
+  ey = s*rotView*[0;1;0];
+  line([pTrajView(1),pTrajView(1)+ey(1)],...
+   [pTrajView(2),pTrajView(2)+ey(2)],...
+   [pTrajView(3),pTrajView(3)+ey(3)],'LineWidth',2,'Color','g','LineStyle','-');
+
+  ez = s*rotView*[0;0;1];
+  line([pTrajView(1),pTrajView(1)+ez(1)],...
+   [pTrajView(2),pTrajView(2)+ez(2)],...
+   [pTrajView(3),pTrajView(3)+ez(3)],'LineWidth',2,'Color','b','LineStyle','-');
+
+  % Plot reference orientation --------------------------------------------------
+  ex = s*rotRefView*[1;0;0];
+  line([pRefView(1),pRefView(1)+ex(1)],...
+   [pRefView(2),pRefView(2)+ex(2)],...
+   [pRefView(3),pRefView(3)+ex(3)],'LineWidth',2,'Color','r','LineStyle','--');
+
+  ey = s*rotRefView*[0;1;0];
+  line([pRefView(1),pRefView(1)+ey(1)],...
+   [pRefView(2),pRefView(2)+ey(2)],...
+   [pRefView(3),pRefView(3)+ey(3)],'LineWidth',2,'Color','g','LineStyle','--');
+
+  ez = s*rotRefView*[0;0;1];
+  line([pRefView(1),pRefView(1)+ez(1)],...
+   [pRefView(2),pRefView(2)+ez(2)],...
+   [pRefView(3),pRefView(3)+ez(3)],'LineWidth',2,'Color','b','LineStyle','--');
+
+  % plot flight direction
+  v = vView;
+  ev = s*v/norm(v);
+  line([pTrajView(1),pTrajView(1)+ev(1)],...
+   [pTrajView(2),pTrajView(2)+ev(2)],...
+   [pTrajView(3),pTrajView(3)+ev(3)],'LineWidth',5,'Color','k','LineStyle','-');
  
 end
-
+hold off
 % ts = vars.get('time').value/ (CONTROL_INTERVALS+1);
 % viewStruct = CreatePlotView(ts,ts,fig);
 % UpdatePlotView( viewStruct, pTraj, rotationNav)
