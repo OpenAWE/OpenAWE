@@ -5,7 +5,7 @@ classdef PowerOptimizationSystem < OclSystem
     view
   end
   
-  methods   
+  methods (Static)
         
     function self = PowerOptimizationSystem()
       self.modelParams = GetModelParameters;
@@ -112,7 +112,7 @@ classdef PowerOptimizationSystem < OclSystem
       
     end
     
-    function initialCondition(self,state,parameters)
+    function initialConditions(self,state,parameters)
       l  = state.get('l').value;
       dl = state.get('dl').value;
       

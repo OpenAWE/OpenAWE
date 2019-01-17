@@ -1,12 +1,10 @@
 CONTROL_INTERVALS = 40;    % horizon discretization
 T = 44;
 
-
-
 options = OclOptions;
 options.nlp.controlIntervals      = CONTROL_INTERVALS;
 options.nlp.collocationOrder      = 3;
-options.nlp.ipopt.linear_solver   = 'ma27';
+options.nlp.ipopt.linear_solver   = 'mumps';
 options.nlp.detectParameters      = false;
 options.nlp.ipopt.max_iter        = 200;
 
@@ -15,14 +13,12 @@ wind = ocp.system.modelParams.wind.atBaseAltitude;
 wind = [8;0;0];
 ocl = OclSolver(ocp.system,PowerOptimizationOCP,options);
 
-pRef = ocp.pRef;
-vRef = ocp.vRef;
-rotRef = ocp.rotRef;
+[pRef,vRef,aRef,rotRef] = getReferenceFlightPath(PowerOptimizationOCP.N,PowerOptimizationOCP.T);
 
-ocl.setParameter('wingArea',system.modelParams.wingArea);
-ocl.setParameter('wingSpan',system.modelParams.wingSpan);
-ocl.setParameter('chord'   ,system.modelParams.chord);
-ocl.setParameter('mass'    ,system.modelParams.mass);
+ocl.setParameter('wingArea',ocp.system.modelParams.wingArea);
+ocl.setParameter('wingSpan',ocp.system.modelParams.wingSpan);
+ocl.setParameter('chord'   ,ocp.system.modelParams.chord);
+ocl.setParameter('mass'    ,ocp.system.modelParams.mass);
 
 ocl.setParameter('w_referenceTracking'  ,1     );
 ocl.setParameter('w_bodyAngularAccel'   ,1e2   );
@@ -87,7 +83,7 @@ pTraj   = vars.get('states').get('positionNav').value;
 vTraj   = vars.get('states').get('velocityNav').value;
 wTraj   = vars.get('states').get('bodyAngularRate').value;
 rotTraj = vars.get('states').get('rotBodyToNav').value;
-zTraj   = vars.get('integrator').get('algVars',options.nlp.collocationOrder).get('lambda').value;
+%zTraj   = vars.get('integrator').get('algVars',options.nlp.collocationOrder).get('lambda').value;
 lTraj   = vars.get('states').get('l').value;
 dlTraj  = vars.get('states').get('dl').value;
 
@@ -122,7 +118,7 @@ subplot(8,1,4);plot(dwTraj');  ylabel('dw');legend({'x','y','z'});
 subplot(8,1,5);plot(lTraj');  ylabel('l');
 subplot(8,1,6);plot(dlTraj');  ylabel('dl');
 subplot(8,1,7);plot(ddlTraj');  ylabel('ddl');
-subplot(8,1,8);plot(zTraj');  ylabel('lambda');
+%subplot(8,1,8);plot(zTraj');  ylabel('lambda');
 
 
 airspeed = zeros(CONTROL_INTERVALS+1,1);

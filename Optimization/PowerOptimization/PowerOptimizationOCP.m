@@ -4,12 +4,11 @@ classdef PowerOptimizationOCP < OclOCP
     N = 40
     T = 44
     
-    pRef
+    pRef = getReferenceFlightPath(PowerOptimizationOCP.N,PowerOptimizationOCP.T);
   end
   
   methods
     function self = PowerOptimizationOCP()
-      pRef = getReferenceFlightPath(PowerOptimizationOCP.N,PowerOptimizationOCP.T);
     end
   end
   
@@ -85,7 +84,7 @@ classdef PowerOptimizationOCP < OclOCP
     end    
     function boundaryConditions(self,state0,stateF,params)     
       % consistency conditions
-      ic = self.system.getInitialConditions(state0.value,params.value);
+      ic = PowerOptimizationOCP.system.getInitialConditions(state0.value,params.value);
       self.addBoundaryCondition(ic,'==',0);
       
       % 
