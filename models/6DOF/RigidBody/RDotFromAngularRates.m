@@ -5,6 +5,3 @@ omegaY    = bodyAngularRate(2);
 omegaZ    = bodyAngularRate(3);
 
 
-RDot = rotation * [0,       omegaZ,  -omegaY; ...
-                   -omegaZ, 0,       omegaX ; ...
-                   omegaY,  -omegaX, 0      ].';

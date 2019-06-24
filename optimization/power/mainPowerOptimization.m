@@ -3,6 +3,18 @@ T = 44;
 
 conf = get_ampyx_ap2_conf();
 
+% setup wind and environment
+r.wind = struct;
+r.wind.atBaseAltitude = [8;0;0];
+r.wind.baseAltitude   = 6.5;
+r.wind.exponent       = 0.12;
+
+r.airDensity        = 1.225;
+r.gravNav           = [0;0;9.81];
+
+% cable number of segments
+r.nSegments         = 10;
+
 system = PowerOptimizationOCP.system;
 wind = system.modelParams.wind;
 wind.atBaseAltitude = [8;0;0];

@@ -6,55 +6,57 @@ function power_dae(eh, x, z, u, parameters, conf)
   chord    = parameters.get('chord');
   mass     = parameters.get('mass');
 
-  positionNav     = x.get('positionNav');
-  velocityNav     = x.get('velocityNav');
-  rotBodyToNav    = x.get('rotBodyToNav');
-  bodyAngularRate = x.get('bodyAngularRate');
+  p     = x.get('positionNav');
+  v     = x.get('velocityNav');
+  R     = x.get('rotBodyToNav');
+  omega = x.get('bodyAngularRate');
 
-  bodyAngularAccel = u.get('bodyAngularAccel');
+  omegad = u.get('bodyAngularAccel');
 
   l               = x.get('l');
-  dl              = x.get('dl');
-  ddl             = u.get('ddl');
+  ld              = x.get('ld');
+  ldd             = u.get('ldd');
   lambda          = z.get('lambda');
 
-  windNav = GetWindAtAltitude(conf.wind,positionNav);
-  [airspeed,alpha,beta] = AerodynamicAngles(velocityNav,rotBodyToNav,windNav);
+  windNav = GetWindAtAltitude(conf.wind,p);
+  [airspeed,alpha,beta] = AerodynamicAngles(v,R,windNav);
 
   aeroForcesBody     = AerodynamicForces( alpha, ...
                                           beta, ...
                                           airspeed, ...
-                                          bodyAngularRate, ....
+                                          omega, ....
                                           conf.coefficients, ...
                                           conf.airDensity, ...
                                           wingSpan, ...
                                           wingArea, ...
                                           chord);
 
-  tetherForce = RigidTetherForce( positionNav,alpha,...
-                                  rotBodyToNav,l,lambda, ...
-                                  airspeed,conf.airDensity, ...
-                                  conf.cableDiameter, ...
-                                  conf.dragCoefficient, ...
-                                  conf.cableDensity);
+  tetherForce = rigid_tether_force( p, alpha,...
+                                    R, l, lambda, ...
+                                    airspeed, conf.airDensity, ...
+                                    conf.cableDiameter, ...
+                                    conf.dragCoefficient, ...
+                                    conf.cableDensity);
 
-  forces      = rotBodyToNav * aeroForcesBody + tetherForce + conf.gravNav;
+  forces      = R * aeroForcesBody + tetherForce + conf.gravNav;
 
-  accelNav    = LinearPointMassDynamics(forces,mass);
+  accelNav    = forces / mass;
 
-  RDot        = RDotFromAngularRates(rotBodyToNav, bodyAngularRate);
+  RDot = R * [0,         omega(3),  -omega(2); ...
+              -omega(3), 0,         omega(1) ; ...
+              omega(2),  -omega(1), 0        ].';
 
-  tetherEquation = RigidTetherEquation(positionNav,velocityNav,accelNav,l,dl,ddl);
+  tetherEquation = RigidTetherEquation(p, v, accelNav, l, ld, ldd);
 
 
-  eh.setODE('positionNav',      velocityNav);
+  eh.setODE('positionNav',      v);
   eh.setODE('velocityNav',      accelNav);
   eh.setODE('rotBodyToNav',     RDot);
-  eh.setODE('bodyAngularRate',  bodyAngularAccel);
+  eh.setODE('bodyAngularRate',  omegad);
 
-  eh.setODE('l',                dl);
-  eh.setODE('dl',               ddl);
+  eh.setODE('l',                ld);
+  eh.setODE('dl',               ldd);
 
-  eh.setODE('integratedWork',   l*dl*lambda);
+  eh.setODE('integratedWork',   l*ld*lambda);
 
   eh.setAlgEquation(tetherEquation);
