@@ -1,10 +1,10 @@
-function dynamics(eh, x, z, u, parameters, conf)
+function dynamics(eh, x, z, u, conf)
 
   % Get access to the system parameters
-  wingArea = parameters.get('wingArea');
-  wingSpan = parameters.get('wingSpan');
-  chord    = parameters.get('chord');
-  mass     = parameters.get('mass');
+  wingArea = conf.wingArea;
+  wingSpan = conf.wingSpan;
+  chord    = conf.chord;
+  mass     = conf.mass;
 
   p     = x.p;
   v     = x.v;

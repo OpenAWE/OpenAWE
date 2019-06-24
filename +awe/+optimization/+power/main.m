@@ -1,7 +1,7 @@
 N = 40;
 T = 44;
 
-conf = ampyx_ap2_conf();
+conf = awe.models.full.ampyx_ap2_conf();
 
 % setup wind and environment
 conf.wind = struct;
@@ -30,13 +30,13 @@ conf.MIN_BETA = -0.3;
 conf.MAX_TENSION = 5000;
 conf.MIN_TENSION = 10;
 
-[ref_p,ref_v,ref_R] = reference_path(N, T);
+[ref_p,ref_v,ref_R] = awe.optimization.power.reference_path(N, T);
 
-solver = ocl.Solver(@awe.optimization.power.variables, ...
-                    @(h,x,z,u,p) awe.optimization.power.dynamics(h, x, z, u, p, conf), ...
+solver = ocl.Solver(T, @awe.optimization.power.variables, ...
+                    @(h,x,z,u,p) awe.optimization.power.dynamics(h, x, z, u, conf), ...
                     @(h,x,z,u,p) awe.optimization.power.path_cost(h, x, z, u, p, conf), ...
                     @(h,k,K,x,p) awe.optimization.power.point_cost(h, k, K, x, p, ref_p), ...
-                    @(h,k,K,x,p) awe.optimization.power.point_constraints(h,k,K,x);
+                    @(h,k,K,x,p) awe.optimization.power.point_constraints(h,k,K,x));
 
 solver.setParameter('time',T);
 

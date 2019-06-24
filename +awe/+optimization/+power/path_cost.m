@@ -1,22 +1,19 @@
-function path_cost(ch, x, z, u, params, conf)
+function path_cost(ch, x, u, conf)
 
-  endTime = params.endTime;
+  omegad = u.omegad;
+  ldd = u.ldd;
 
-  bodyAngularAccel = u.bodyAngularAccel;
-  ddl = u.ddl;
+  self.addPathCost(conf.w_bodyAngularAccel * (omegad.'*omegad));
+  self.addPathCost(conf.w_ddl * ldd^2);
 
-  self.addPathCost(params.w_bodyAngularAccel * (bodyAngularAccel.'*bodyAngularAccel)/endTime);
-  self.addPathCost(params.w_ddl * ddl^2/endTime);
+  p = x.p;
+  v = x.v;
+  R = x.R;
 
+  wind_at_altitude = awe.models.full.wind_at_altitude(conf.wind, p);
 
-  positionNav = x.positionNav;
-  velocityNav = x.velocityNav;
-  rotBodyToNav = x.rotBodyToNav;
+  [~,~,beta] = AerodynamicAngles( v, R, wind_at_altitude);
+  ch.addPathCost(conf.w_beta * beta^2);
 
-  windNavAtAltitude = GetWindAtAltitude(conf.wind, positionNav);
-
-  [~,~,beta] = AerodynamicAngles( velocityNav, rotBodyToNav, windNavAtAltitude);
-  ch.addPathCost(params.w_beta * beta^2/endTime);
-
-  ch.add( -1e-4 * state.dl / endTime )
+  ch.add( -1e-4 * state.dl )
 end
