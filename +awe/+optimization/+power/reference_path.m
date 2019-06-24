@@ -1,8 +1,4 @@
-function [pTraj,vTraj,aTraj,RTraj] = referenceFlightPath(N,T,verbose)
-
-if nargin < 3
-  verbose = false;
-end
+function [pTraj,vTraj,RTraj] = reference_path(N, T)
 
 % Define pattern parameter ------------------------------------------------
 lineRadiusGuess   = 400; % [m]

@@ -1,80 +1,70 @@
-CONTROL_INTERVALS = 40;    % horizon discretization
+N = 40;
 T = 44;
 
-conf = get_ampyx_ap2_conf();
+conf = ampyx_ap2_conf();
 
 % setup wind and environment
-r.wind = struct;
-r.wind.atBaseAltitude = [8;0;0];
-r.wind.baseAltitude   = 6.5;
-r.wind.exponent       = 0.12;
+conf.wind = struct;
+conf.wind.atBaseAltitude = [8;0;0];
+conf.wind.baseAltitude   = 6.5;
+conf.wind.exponent       = 0.12;
 
-r.airDensity        = 1.225;
-r.gravNav           = [0;0;9.81];
+conf.airDensity        = 1.225;
+conf.gravNav           = [0;0;9.81];
 
 % cable number of segments
-r.nSegments         = 10;
+conf.nSegments         = 10;
 
-system = PowerOptimizationOCP.system;
-wind = system.modelParams.wind;
-wind.atBaseAltitude = [8;0;0];
-ocl = OclSolver(system,PowerOptimizationOCP);
+conf.w_referenceTracking = 1;
+conf.w_bodyAngularAccel = 1e2;
+conf.w_ddl = 1e-2;
+conf.w_beta = 1e2;
+conf.w_integratedWork = 1e-3;
 
-[pRef,vRef,aRef,rotRef] = getReferenceFlightPath(PowerOptimizationOCP.N,PowerOptimizationOCP.T);
+conf.MAX_AIRSPEED = 32;
+conf.MIN_AIRSPEED = 13;
+conf.MAX_ALPHA = 0.16;
+conf.MIN_ALPHA = -0.1;
+conf.MAX_BETA = 0.3;
+conf.MIN_BETA = -0.3;
+conf.MAX_TENSION = 5000;
+conf.MIN_TENSION = 10;
 
-ocl.setParameter('wingArea',PowerOptimizationOCP.system.modelParams.wingArea);
-ocl.setParameter('wingSpan',PowerOptimizationOCP.system.modelParams.wingSpan);
-ocl.setParameter('chord'   ,PowerOptimizationOCP.system.modelParams.chord);
-ocl.setParameter('mass'    ,PowerOptimizationOCP.system.modelParams.mass);
+solver = ocl.Solver();
 
-ocl.setParameter('w_referenceTracking'  ,1     );
-ocl.setParameter('w_bodyAngularAccel'   ,1e2   );
-ocl.setParameter('w_ddl'                ,1e-2  );
-ocl.setParameter('w_beta'               ,1e2   );
-ocl.setParameter('w_integratedWork'     ,1e-3  );
+[ref_p,ref_v,ref_R] = reference_path(N, T);
 
-ocl.setParameter('MAX_AIRSPEED'         ,32    );
-ocl.setParameter('MIN_AIRSPEED'         ,13    );
-ocl.setParameter('MAX_ALPHA'            ,0.16   );
-ocl.setParameter('MIN_ALPHA'            ,-0.1   );
-ocl.setParameter('MAX_BETA'             ,0.3   );
-ocl.setParameter('MIN_BETA'             ,-0.3   );
-ocl.setParameter('MAX_TENSION'          ,5000  );
-ocl.setParameter('MIN_TENSION'          ,10    );
+solver.setParameter('time',T);
 
-ocl.setParameter('time',T);
+solver.setBounds('l', 1, 700);
+solver.setBounds('ld',-15,20);
 
-ocl.setBounds('l', 1, 700);
-ocl.setBounds('dl',-15,20);
+solver.setBounds('p',[-10000;-10000;-10000],[10000;10000;-100]);
+solver.setBounds('v',-60,60);
+solver.setBounds('R',-1.1,1.1);
+solver.setBounds('omega',-1,1);
 
-ocl.setBounds('positionNav',[-10000;-10000;-10000],[10000;10000;-100]);
-ocl.setBounds('velocityNav',-60,60);
-ocl.setBounds('rotBodyToNav',-1.1,1.1);
-ocl.setBounds('bodyAngularRate',-1,1);
+solver.setBounds('omegad',-0.2,0.2);
+solver.setBounds('ldd',-2.3,2.4);
 
-ocl.setBounds('bodyAngularAccel',-0.2,0.2);
-ocl.setBounds('ddl',-2.3,2.4);
-
-ocl.setInitialBounds('integratedWork',0,0);
-ocl.setInitialBounds('positionNav',[-10000;0;-10000],[10000;0;-100]);
+solver.setInitialStateBounds('iwork',0,0);
+solver.setInitialStateBounds('p',[-10000;0;-10000],[10000;0;-100]);
 
 
 % assign initial guess
-vars = ocl.getInitialGuess();
+vars = solver.getInitialGuess();
 
-vars.get('states').get('positionNav').set(pRef);
-vars.get('time').set(T);
-vars.get('states').get('l').set(400);
-vars.get('states').get('velocityNav').set(vRef);
+vars.states.get.p.set(ref_p);
+% vars.get('time').set(T);
+vars.states.l.set(400);
+vars.states.v.set(ref_v);
 
-rotRefCell = squeeze(num2cell(reshape(rotRef,3,3,size(rotRef,2)),[1,2]));
-vars.get('states').get('rotBodyToNav').set(rotRefCell);
-
-%vars.get('integrator').get('algVars').get('lambda').set(1);
+rotRefCell = squeeze(num2cell(reshape(ref_R,3,3,size(ref_R,2)),[1,2]));
+vars.states.R.set(rotRefCell);
 
 % solve
-ocl.setParameter('mu', 0);
-[vars,times] = ocl.solve(vars);
+solver.setParameter('mu', 0);
+[vars,times] = solver.solve(vars);
 
 keyboard
 %
@@ -85,29 +75,28 @@ keyboard
 %vars = ocl.solve(vars);
 
 % plot solution
-times   = linspace(0,vars.get('time').value,CONTROL_INTERVALS+1);
-pTraj   = vars.get('states').get('positionNav').value;
-vTraj   = vars.get('states').get('velocityNav').value;
-wTraj   = vars.get('states').get('bodyAngularRate').value;
-rotTraj = vars.get('states').get('rotBodyToNav').value;
-%zTraj   = vars.get('integrator').get('algVars',options.nlp.collocationOrder).get('lambda').value;
-lTraj   = vars.get('states').get('l').value;
-dlTraj  = vars.get('states').get('dl').value;
+traj_p = vars.states.p.value;
+traj_v = vars.states.v.value;
+traj_omega = vars.states.omega.value;
+traj_R = vars.states.R.value;
 
-ddlTraj = vars.get('controls').get('ddl').value;
-dwTraj  = vars.get('controls').get('bodyAngularAccel').value;
+traj_l   = vars.states.l.value;
+traj_ld  = vars.states.ld.value;
+
+traj_ldd = vars.controls.ldd.value;
+traj_omegad  = vars.controls.omegad.value;
 
 figure;hold on;grid on;
-plot3(pTraj(1,:),pTraj(2,:),pTraj(3,:));
-plot3(pTraj(1,1),pTraj(2,1),pTraj(3,1),'go');
-plot3(pTraj(1,end),pTraj(2,end),pTraj(3,end),'ro');
-plot3(pRef(1,:),pRef(2,:),pRef(3,:),'k');
+plot3(traj_p(1,:),traj_p(2,:),traj_p(3,:));
+plot3(traj_p(1,1),traj_p(2,1),traj_p(3,1),'go');
+plot3(traj_p(1,end),traj_p(2,end),traj_p(3,end),'ro');
+plot3(ref_p(1,:),ref_p(2,:),ref_p(3,:),'k');
 axis equal
 
 % average power
 %mechanicalWork = zTraj.*lTraj(2:end).*dlTraj(2:end);
 %integratedWork = cumtrapz(times(2:end),mechanicalWork)/times(end);
-%integratedWorkState = vars.get('states').get('integratedWork').value;
+%integratedWorkState = vars.states.get('integratedWork').value;
 %integratedWorkState = integratedWorkState/times(end);
 %figure;hold on;grid on;
 %plot(times(2:end),mechanicalWork,'b');
@@ -118,28 +107,28 @@ axis equal
 
 
 figure;hold on;grid on;
-subplot(8,1,1);plot(pTraj');  ylabel('p');legend({'x','y','z'});
-subplot(8,1,2);plot(vTraj'); ylabel('v');legend({'x','y','z'});
-subplot(8,1,3);plot(wTraj');  ylabel('w');legend({'x','y','z'});
-subplot(8,1,4);plot(dwTraj');  ylabel('dw');legend({'x','y','z'});
-subplot(8,1,5);plot(lTraj');  ylabel('l');
-subplot(8,1,6);plot(dlTraj');  ylabel('dl');
-subplot(8,1,7);plot(ddlTraj');  ylabel('ddl');
+subplot(8,1,1);plot(traj_p');  ylabel('p');legend({'x','y','z'});
+subplot(8,1,2);plot(traj_v'); ylabel('v');legend({'x','y','z'});
+subplot(8,1,3);plot(traj_omega');  ylabel('w');legend({'x','y','z'});
+subplot(8,1,4);plot(traj_omegad');  ylabel('dw');legend({'x','y','z'});
+subplot(8,1,5);plot(traj_l');  ylabel('l');
+subplot(8,1,6);plot(traj_ld');  ylabel('dl');
+subplot(8,1,7);plot(traj_ldd');  ylabel('ddl');
 %subplot(8,1,8);plot(zTraj');  ylabel('lambda');
 
 
-airspeed = zeros(CONTROL_INTERVALS+1,1);
-groundSpeed = diag(sqrt(vTraj'*vTraj));
+airspeed = zeros(N+1,1);
+groundSpeed = diag(sqrt(traj_v'*traj_v));
 %tension = zTraj .* diag(sqrt(pTraj(:,2:end)'*pTraj(:,2:end)))';
 
-windNavAtAltitude = zeros(3,CONTROL_INTERVALS+1);
-alpha = zeros(CONTROL_INTERVALS+1,1);
-beta = zeros(CONTROL_INTERVALS+1,1);
-for k=1:CONTROL_INTERVALS+1
-  p = pTraj(:,k);
+windNavAtAltitude = zeros(3,N+1);
+alpha = zeros(N+1,1);
+beta = zeros(N+1,1);
+for k=1:N+1
+  p = traj_p(:,k);
   windNavAtAltitude(:,k) = GetWindAtAltitude(system.modelParams.wind,p);
-  R = rotTraj{k};
-  v = vTraj(:,k);
+  R = traj_R{k};
+  v = traj_v(:,k);
   [airspeed(k),alpha(k),beta(k)] = AerodynamicAngles( v, R, windNavAtAltitude(:,k) );
 end
 
@@ -156,7 +145,7 @@ subplot(5,1,5);plot(beta*180/pi);  ylabel('side slip angle deg');
 
 cTraj = [];
 dcTraj = [];
-for k=1:CONTROL_INTERVALS+1
+for k=1:N+1
   state = vars.states(:,:,k);
   ic = system.icFun.evaluate(state.value,0);
   cTraj   = [cTraj,;ic];
@@ -175,17 +164,17 @@ rotationNavToView = [1,0,0;
                      0,-1,0;
                      0,0,-1];
 
-for k=1:CONTROL_INTERVALS
+for k=1:N
 
   R = vars.states(:,:,k).get('rotBodyToNav').value;
-  pTrajView = rotationNavToView*pTraj(:,k);
-  pRefView = rotationNavToView*pRef(:,k);
+  pTrajView = rotationNavToView*traj_p(:,k);
+  pRefView = rotationNavToView*ref_p(:,k);
   vView = rotationNavToView * vars.states(:,:,k).get('velocityNav').value;
   rotView = rotationNavToView * R * rotationNavToView';
-  rotRefView = rotationNavToView * reshape(rotRef(:,k),3,3) * rotationNavToView';
+  rotRefView = rotationNavToView * reshape(ref_R(:,k),3,3) * rotationNavToView';
 
   % Plot cable --------------------------------------------------------
-  if dlTraj(k) >= 0
+  if traj_ld(k) >= 0
     line([0,pTrajView(1)],[0,pTrajView(2)],[0,pTrajView(3)],'LineWidth',0.8,'Color','g','LineStyle',':');
   else
     line([0,pTrajView(1)],[0,pTrajView(2)],[0,pTrajView(3)],'LineWidth',0.8,'Color','r','LineStyle',':');

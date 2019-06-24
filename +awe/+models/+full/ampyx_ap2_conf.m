@@ -1,4 +1,4 @@
-function r = get_ampyx_ap2_conf()
+function r = ampyx_ap2_conf()
 
 r = struct;
 
