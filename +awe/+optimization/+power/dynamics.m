@@ -59,9 +59,11 @@ function dynamics(eh, x, z, u, conf)
 
   eh.setODE('iwork',  l*ld*lambda);
   
-  eh.setODE('p0',     0);
-  eh.setODE('v0',     0);
-  eh.setODE('R0',     0);
-  eh.setODE('omega0', 0);
+  eh.setODE('p0',     zeros(3,1));
+  eh.setODE('v0',     zeros(3,1));
+  eh.setODE('R0',     zeros(3,3));
+  eh.setODE('omega0', zeros(3,1));
+  
+  eh.setODE('time', 1);
 
   eh.setAlgEquation(tether_eq);

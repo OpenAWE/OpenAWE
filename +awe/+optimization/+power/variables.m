@@ -18,5 +18,7 @@ vh.addState('v0',[3,1]);
 vh.addState('R0',[3,3]);
 vh.addState('omega0',[3,1]);
 
+vh.addState('time');
+
 vh.addParameter('mu',[1 1]);
 

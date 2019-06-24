@@ -35,10 +35,11 @@ conf.MIN_TENSION = 10;
 solver = ocl.Solver(T, @awe.optimization.power.variables, ...
                     @(h,x,z,u,p) awe.optimization.power.dynamics(h, x, z, u, conf), ...
                     @(h,x,z,u,p) awe.optimization.power.path_cost(h, x, u, conf), ...
-                    @(h,k,K,x,p) awe.optimization.power.point_cost(h, k, K, x, p, ref_p), ...
-                    @(h,k,K,x,p) awe.optimization.power.point_constraints(h,k,K,x));
+                    @(h,k,K,x,p) awe.optimization.power.point_cost(h, k, K, x, p, conf, ref_p), ...
+                    @(h,k,K,x,p) awe.optimization.power.point_constraints(h,k,K,x), ...
+                    'N', N);
 
-solver.setParameter('time',T);
+solver.setBounds('time', 0, T);
 
 solver.setBounds('l', 1, 700);
 solver.setBounds('ld',-15,20);
@@ -51,20 +52,27 @@ solver.setBounds('omega',-1,1);
 solver.setBounds('omegad',-0.2,0.2);
 solver.setBounds('ldd',-2.3,2.4);
 
-solver.setInitialStateBounds('iwork',0,0);
-solver.setInitialStateBounds('p',[-10000;0;-10000],[10000;0;-100]);
+solver.setInitialBounds('iwork', 0);
+solver.setInitialBounds('time', 0);
+solver.setInitialBounds('p',[-10000;0;-10000],[10000;0;-100]);
 
 
 % assign initial guess
 vars = solver.getInitialGuess();
 
-vars.states.get.p.set(ref_p);
-% vars.get('time').set(T);
-vars.states.l.set(400);
+vars.states.time.set(T);
+
+vars.states.p.set(ref_p);
 vars.states.v.set(ref_v);
 
 rotRefCell = squeeze(num2cell(reshape(ref_R,3,3,size(ref_R,2)),[1,2]));
 vars.states.R.set(rotRefCell);
+
+vars.states.p0.set(ref_p);
+vars.states.v0.set(ref_v);
+vars.states.R0.set(rotRefCell);
+
+vars.states.l.set(400);
 
 % solve
 solver.setParameter('mu', 0);

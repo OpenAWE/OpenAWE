@@ -7,7 +7,7 @@ tetherDrag      = 0.1250 * airDensity * airspeed^2 * ...
 tetherDragBody  = tetherDrag * -[cos(alpha);0;sin(alpha)];
 tetherDragNav   = R * tetherDragBody;
 
-tetherWeight    = [0;0;tetherDensity*tetherLength*9.81];
+tetherWeight    = [0;0;tetherDensity*l*9.81];
 tensionForce    = -lambda*p;
 
 r = tetherDragNav + tetherWeight + tensionForce;
