@@ -1,15 +1,12 @@
-function [pTraj,vTraj,aTraj,RTraj] = getReferenceFlightPath(N,T,verbose)
-%% compute initial guess for Homotopy algoritm
-% computeReference(N,T)
-% computeReference(N,T,verbose)
+function [pTraj,vTraj,aTraj,RTraj] = referenceFlightPath(N,T,verbose)
 
 if nargin < 3
   verbose = false;
 end
 
 % Define pattern parameter ------------------------------------------------
-lineRadiusGuess   = 400; % [m]                     
-circleRadiusGuess = 200; % [m]  
+lineRadiusGuess   = 400; % [m]
+circleRadiusGuess = 200; % [m]
 minAltitude       = 100;  % [m]
 
 r      = circleRadiusGuess;             % radious of lemniscate
@@ -34,7 +31,7 @@ for k=1:N+1
   % lemniscate parametric function
   xyzCircleFrame       = [h ;  r*sin(theta)           ;    -0.5*r*sin(2*theta)          ];
   xyzDotCircleFrame    = [0 ;  r*cos(theta)*thetaDot  ;    -r*cos(2*theta)*thetaDot     ];
-  xyzDotDotCircleFrame = [0 ; -r*sin(theta)*thetaDot^2;    2*r*sin(2*theta)*thetaDot^2  ];                
+  xyzDotDotCircleFrame = [0 ; -r*sin(theta)*thetaDot^2;    2*r*sin(2*theta)*thetaDot^2  ];
 
 
   phi = asin(r/lineRadiusGuess); % [rad] rotate so it's above ground
@@ -42,7 +39,7 @@ for k=1:N+1
 
   R_c2n = [ cos(phi), 0, sin(phi);
                    0, 1,        0;
-           -sin(phi), 0, cos(phi)]; 
+           -sin(phi), 0, cos(phi)];
 
   % pre-allocation
   xyz       = R_c2n*xyzCircleFrame;

@@ -1,17 +1,10 @@
 CONTROL_INTERVALS = 40;    % horizon discretization
 T = 44;
 
-options = OclOptions;
-options.nlp.controlIntervals      = CONTROL_INTERVALS;
-options.nlp.collocationOrder      = 3;
-options.nlp.ipopt.linear_solver   = 'mumps';
-options.nlp.detectParameters      = false;
-options.nlp.ipopt.max_iter        = 400;
-
 system = PowerOptimizationOCP.system;
 wind = system.modelParams.wind;
 wind.atBaseAltitude = [8;0;0];
-ocl = OclSolver(system,PowerOptimizationOCP,options);
+ocl = OclSolver(system,PowerOptimizationOCP);
 
 [pRef,vRef,aRef,rotRef] = getReferenceFlightPath(PowerOptimizationOCP.N,PowerOptimizationOCP.T);
 
@@ -103,7 +96,7 @@ axis equal
 %integratedWorkState = vars.get('states').get('integratedWork').value;
 %integratedWorkState = integratedWorkState/times(end);
 %figure;hold on;grid on;
-%plot(times(2:end),mechanicalWork,'b'); 
+%plot(times(2:end),mechanicalWork,'b');
 %plot(times(2:end),integratedWork,'r');
 %plot(times,integratedWorkState,'g');
 %legend('mechanical work','average power (trapezoidal)','avarage power (integrator)')
@@ -169,7 +162,7 @@ rotationNavToView = [1,0,0;
                      0,0,-1];
 
 for k=1:CONTROL_INTERVALS
-  
+
   R = vars.states(:,:,k).get('rotBodyToNav').value;
   pTrajView = rotationNavToView*pTraj(:,k);
   pRefView = rotationNavToView*pRef(:,k);
@@ -183,7 +176,7 @@ for k=1:CONTROL_INTERVALS
   else
     line([0,pTrajView(1)],[0,pTrajView(2)],[0,pTrajView(3)],'LineWidth',0.8,'Color','r','LineStyle',':');
   end
-  
+
   % Plot orientation --------------------------------------------------
 
   ex = s*rotView*[1;0;0];
@@ -223,10 +216,9 @@ for k=1:CONTROL_INTERVALS
   line([pTrajView(1),pTrajView(1)+ev(1)],...
    [pTrajView(2),pTrajView(2)+ev(2)],...
    [pTrajView(3),pTrajView(3)+ev(3)],'LineWidth',5,'Color','k','LineStyle','-');
- 
+
 end
 hold off
 % ts = vars.get('time').value/ (CONTROL_INTERVALS+1);
 % viewStruct = CreatePlotView(ts,ts,fig);
 % UpdatePlotView( viewStruct, pTraj, rotationNav)
-
