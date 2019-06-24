@@ -1,9 +1,9 @@
-function point_constraints(ch, k, K, x, params)
+function point_constraints(ch, k, K, x)
 
 % initial condition
 if k ==1
   constraint = ocl.Constraint();
-  awe.optimization.initial_condition(constraint, x, params);
+  awe.optimization.initial_condition(constraint, x);
   
   ch.addBoundaryCondition(constraint.value, '==', 0);
   

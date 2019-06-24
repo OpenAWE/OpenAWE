@@ -1,4 +1,4 @@
-function initial_condition(ch, x, ~)
+function initial_condition(ch, x)
   l  = x.l;
   ld = x.ld;
 
