@@ -1,4 +1,4 @@
-function power_dae(eh, x, z, u, parameters, conf)
+function dynamics(eh, x, z, u, parameters, conf)
 
   % Get access to the system parameters
   wingArea = parameters.get('wingArea');
@@ -6,10 +6,10 @@ function power_dae(eh, x, z, u, parameters, conf)
   chord    = parameters.get('chord');
   mass     = parameters.get('mass');
 
-  p     = x.get('positionNav');
-  v     = x.get('velocityNav');
-  R     = x.get('rotBodyToNav');
-  omega = x.get('bodyAngularRate');
+  p     = x.p;
+  v     = x.v;
+  R     = x.R;
+  omega = x.omega;
 
   omegad = u.get('bodyAngularAccel');
 
@@ -18,8 +18,8 @@ function power_dae(eh, x, z, u, parameters, conf)
   ldd             = u.get('ldd');
   lambda          = z.get('lambda');
 
-  windNav = GetWindAtAltitude(conf.wind,p);
-  [airspeed,alpha,beta] = AerodynamicAngles(v,R,windNav);
+  windNav = wind_at_altitude(conf.wind, p);
+  [airspeed,alpha,beta] = AerodynamicAngles(v, R, windNav);
 
   aeroForcesBody     = AerodynamicForces( alpha, ...
                                           beta, ...
@@ -31,14 +31,14 @@ function power_dae(eh, x, z, u, parameters, conf)
                                           wingArea, ...
                                           chord);
 
-  tetherForce = rigid_tether_force( p, alpha,...
+  tether_force = rigid_tether_force(p, alpha,...
                                     R, l, lambda, ...
                                     airspeed, conf.airDensity, ...
                                     conf.cableDiameter, ...
                                     conf.dragCoefficient, ...
                                     conf.cableDensity);
 
-  forces      = R * aeroForcesBody + tetherForce + conf.gravNav;
+  forces      = R * aeroForcesBody + tether_force + conf.gravNav;
 
   accelNav    = forces / mass;
 
@@ -46,17 +46,22 @@ function power_dae(eh, x, z, u, parameters, conf)
               -omega(3), 0,         omega(1) ; ...
               omega(2),  -omega(1), 0        ].';
 
-  tetherEquation = RigidTetherEquation(p, v, accelNav, l, ld, ldd);
+  tether_eq = awe.models.full.rigid_tether_equation(p, v, accelNav, l, ld, ldd);
 
 
-  eh.setODE('positionNav',      v);
-  eh.setODE('velocityNav',      accelNav);
-  eh.setODE('rotBodyToNav',     RDot);
-  eh.setODE('bodyAngularRate',  omegad);
+  eh.setODE('p',      v);
+  eh.setODE('v',      accelNav);
+  eh.setODE('R',      RDot);
+  eh.setODE('omega',  omegad);
 
-  eh.setODE('l',                ld);
-  eh.setODE('dl',               ldd);
+  eh.setODE('l',      ld);
+  eh.setODE('ld',     ldd);
 
-  eh.setODE('integratedWork',   l*ld*lambda);
+  eh.setODE('iwork',  l*ld*lambda);
+  
+  eh.setODE('p0',     0);
+  eh.setODE('v0',     0);
+  eh.setODE('R0',     0);
+  eh.setODE('omega0', 0);
 
-  eh.setAlgEquation(tetherEquation);
+  eh.setAlgEquation(tether_eq);

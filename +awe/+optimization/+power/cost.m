@@ -1,12 +1,12 @@
-function cost = power_cost(ch, k, K, x, params, p_reference)
+function c = cost(ch, k, K, x, params, p_reference)
 
   e = x.positionNav - p_reference(:,k);
-  cost = e'*e;
+  c = e'*e;
 
   mu = params.mu;
-  cost = params.w_referenceTracking * (1-mu) * cost / x.time;
+  c = params.w_referenceTracking * (1-mu) * c / x.time;
 
-  ch.add(cost);
+  ch.add(c);
 
   if k==K
     integratedWork = x.integratedWork;

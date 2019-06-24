@@ -1,4 +1,4 @@
-function power_pathcost(ch, x, z, u, params, conf)
+function path_cost(ch, x, z, u, params, conf)
 
   endTime = params.endTime;
 

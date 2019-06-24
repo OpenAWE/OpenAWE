@@ -1,4 +1,4 @@
-function power_constraints(ch, x, conf)
+function constraints(ch, x, conf)
 positionNav = x.get('positionNav');
 velocityNav = x.get('velocityNav');
 rotBodyToNav = x.get('rotBodyToNav');
