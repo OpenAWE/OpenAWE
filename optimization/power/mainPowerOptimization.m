@@ -1,6 +1,8 @@
 CONTROL_INTERVALS = 40;    % horizon discretization
 T = 44;
 
+conf = get_ampyx_ap2_conf();
+
 system = PowerOptimizationOCP.system;
 wind = system.modelParams.wind;
 wind.atBaseAltitude = [8;0;0];

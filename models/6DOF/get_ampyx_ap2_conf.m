@@ -1,4 +1,4 @@
-function parametersAmpyxAP2 = GetModelParameters()
+function parametersAmpyxAP2 = get_ampyx_ap2_conf()
 
 parametersAmpyxAP2 = struct;
 
@@ -25,7 +25,7 @@ parametersAmpyxAP2.dragCoefficient               = 1.2;
 parametersAmpyxAP2.coefficients = struct;
 parametersAmpyxAP2.coefficients.CX_alpha  = [2.5549; 0.4784; -0.0293];
 parametersAmpyxAP2.coefficients.CZ_alpha  = [5.7736; -5.0676; -0.5526];
-parametersAmpyxAP2.coefficients.dCX.dq    = [4.4124;-0.6029]; 
+parametersAmpyxAP2.coefficients.dCX.dq    = [4.4124;-0.6029];
 parametersAmpyxAP2.coefficients.dCY.db    = [0.0936; -0.0299; -0.1855];
 parametersAmpyxAP2.coefficients.dCY.dp    = [0.0496; -0.0140; -0.1022];
 parametersAmpyxAP2.coefficients.dCY.dr    = [0.1368; 0.1695];
@@ -42,5 +42,3 @@ parametersAmpyxAP2.gravNav           = [0;0;9.81];
 
 % cable number of segments
 parametersAmpyxAP2.nSegments         = 10;
-
-
