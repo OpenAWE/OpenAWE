@@ -1,7 +1,7 @@
 N = 40;
 T = 44;
 
-conf = awe.models.full.ampyx_ap2_conf();
+conf = awe.model.ampyx_ap2_conf();
 
 % setup wind and environment
 conf.wind = struct;
@@ -30,49 +30,45 @@ conf.MIN_BETA = -0.3;
 conf.MAX_TENSION = 5000;
 conf.MIN_TENSION = 10;
 
-[ref_p,ref_v,ref_R] = awe.optimization.power.reference_path(N, T);
+[ref_p,ref_v,ref_R] = awe.optimization.reference_path(N, T);
 
-solver = ocl.Solver(T, @awe.optimization.power.variables, ...
-                    @(h,x,z,u,p) awe.optimization.power.dynamics(h, x, z, u, conf), ...
-                    @(h,x,z,u,p) awe.optimization.power.path_cost(h, x, u, conf), ...
-                    @(h,k,K,x,p) awe.optimization.power.point_cost(h, k, K, x, p, conf, ref_p), ...
-                    @(h,k,K,x,p) awe.optimization.power.point_constraints(h,k,K,x), ...
+solver = ocl.Solver(T, @awe.optimization.variables, ...
+                    @(h,x,z,u,p) awe.optimization.dynamics(h, x, z, u, conf), ...
+                    @(h,x,z,u,p) awe.optimization.path_cost(h, x, u, conf), ...
+                    @(h,k,K,x,p) awe.optimization.point_cost(h, k, K, x, p, conf, ref_p), ...
+                    @(h,k,K,x,p) awe.optimization.point_constraints(h,k,K,x), ...
                     'N', N);
 
 solver.setBounds('time', 0, T);
 
 solver.setBounds('l', 1, 700);
-solver.setBounds('ld',-15,20);
+solver.setBounds('ld', -15, 20);
 
-solver.setBounds('p',[-10000;-10000;-10000],[10000;10000;-100]);
-solver.setBounds('v',-60,60);
-solver.setBounds('R',-1.1,1.1);
-solver.setBounds('omega',-1,1);
+solver.setBounds('p', [-10000; -10000; -10000], [10000; 10000; -100]);
+solver.setBounds('v', -60, 60);
+solver.setBounds('R', -1.1, 1.1);
+solver.setBounds('omega', -1, 1);
 
-solver.setBounds('omegad',-0.2,0.2);
-solver.setBounds('ldd',-2.3,2.4);
+solver.setBounds('omegad', -0.2, 0.2);
+solver.setBounds('ldd', -2.3, 2.4);
 
 solver.setInitialBounds('iwork', 0);
 solver.setInitialBounds('time', 0);
-solver.setInitialBounds('p',[-10000;0;-10000],[10000;0;-100]);
-
+solver.setInitialBounds('p', [-10000;0;-10000], [10000;0;-100]);
 
 % assign initial guess
-vars = solver.getInitialGuess();
+ig = solver.getInitialGuess();
+times = linspace(0, 1, N+1);
 
-vars.states.time.set(T);
+ig.time.set(times, T);
 
-vars.states.p.set(ref_p);
-vars.states.v.set(ref_v);
+ig.p.set(times, ref_p);
+ig.v.set(times, ref_v);
 
-rotRefCell = squeeze(num2cell(reshape(ref_R,3,3,size(ref_R,2)),[1,2]));
-vars.states.R.set(rotRefCell);
+rotRefCell = squeeze(num2cell(reshape(ref_R,3,3, size(ref_R,2)), [1,2]));
+ig.R.set(times, rotRefCell);
 
-vars.states.p0.set(ref_p);
-vars.states.v0.set(ref_v);
-vars.states.R0.set(rotRefCell);
-
-vars.states.l.set(400);
+ig.l.set(times, 400);
 
 % solve
 solver.setParameter('mu', 0);
@@ -138,10 +134,10 @@ alpha = zeros(N+1,1);
 beta = zeros(N+1,1);
 for k=1:N+1
   p = traj_p(:,k);
-  windNavAtAltitude(:,k) = GetWindAtAltitude(system.modelParams.wind,p);
+  windNavAtAltitude(:,k) = awe.model.wind_at_altitude(system.modelParams.wind,p);
   R = traj_R{k};
   v = traj_v(:,k);
-  [airspeed(k),alpha(k),beta(k)] = AerodynamicAngles( v, R, windNavAtAltitude(:,k) );
+  [airspeed(k),alpha(k),beta(k)] = awe.model.aerodynamic_forces( v, R, windNavAtAltitude(:,k) );
 end
 
 

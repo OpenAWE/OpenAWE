@@ -4,14 +4,13 @@ function c = point_cost(ch, k, K, x, params, conf, ref_p)
   c = e.'*e;
 
   mu = params.mu;
-  c = conf.w_referenceTracking * (1-mu) * c / x.time;
+  c = conf.w_referenceTracking * (1-mu) * c;
 
   ch.add(c);
 
   if k==K
     integratedWork = x.iwork;
-    endTime = x.time;
-    ch.add( -conf.w_integratedWork * mu * integratedWork / endTime);
+    ch.add( -conf.w_integratedWork * mu * integratedWork );
   end
 
 end
