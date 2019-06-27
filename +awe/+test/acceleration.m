@@ -21,4 +21,4 @@ wingSpan = conf.wingSpan;
 wingArea = conf.wingArea;
 chord = conf.chord;
 
-awe.model.linear_acceleration(p,v,R,omega,lambda,conf)
+awe.model.linear_acceleration(p,v,R,omega,lambda,conf);
