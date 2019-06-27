@@ -46,7 +46,7 @@ solver.setBounds('ld', -15, 20);
 
 solver.setBounds('p', [-10000; -10000; -10000], [10000; 10000; -100]);
 solver.setBounds('v', -60, 60);
-solver.setBounds('R', -1.1, 1.1);
+solver.setBounds('R', -1.1, 1.2);
 solver.setBounds('omega', -1, 1);
 
 solver.setBounds('omegad', -0.2, 0.2);
@@ -57,22 +57,22 @@ solver.setInitialBounds('time', 0);
 solver.setInitialBounds('p', [-10000;0;-10000], [10000;0;-100]);
 
 % assign initial guess
-ig = solver.getInitialGuess();
-times = linspace(0, 1, N+1);
+ig = solver.initialGuess();
+gridpoints = linspace(0, 1, N+1);
 
-ig.time.set(times, T);
+ig{1}.add('time', gridpoints, T);
 
-ig.p.set(times, ref_p);
-ig.v.set(times, ref_v);
+ig{1}.add('p', gridpoints, ref_p);
+ig{1}.add('v', gridpoints, ref_v);
 
 rotRefCell = squeeze(num2cell(reshape(ref_R,3,3, size(ref_R,2)), [1,2]));
-ig.R.set(times, rotRefCell);
+ig{1}.add('R', gridpoints, rotRefCell);
 
-ig.l.set(times, 400);
+ig{1}.add('l', gridpoints, 400);
 
 % solve
 solver.setParameter('mu', 0);
-[vars,times] = solver.solve(vars);
+[sol,gridpoints] = solver.solve(ig);
 
 keyboard
 %
@@ -83,16 +83,16 @@ keyboard
 %vars = ocl.solve(vars);
 
 % plot solution
-traj_p = vars.states.p.value;
-traj_v = vars.states.v.value;
-traj_omega = vars.states.omega.value;
-traj_R = vars.states.R.value;
+traj_p = sol.states.p.value;
+traj_v = sol.states.v.value;
+traj_omega = sol.states.omega.value;
+traj_R = sol.states.R.value;
 
-traj_l   = vars.states.l.value;
-traj_ld  = vars.states.ld.value;
+traj_l   = sol.states.l.value;
+traj_ld  = sol.states.ld.value;
 
-traj_ldd = vars.controls.ldd.value;
-traj_omegad  = vars.controls.omegad.value;
+traj_ldd = sol.controls.ldd.value;
+traj_omegad  = sol.controls.omegad.value;
 
 figure;hold on;grid on;
 plot3(traj_p(1,:),traj_p(2,:),traj_p(3,:));
@@ -154,7 +154,7 @@ subplot(5,1,5);plot(beta*180/pi);  ylabel('side slip angle deg');
 cTraj = [];
 dcTraj = [];
 for k=1:N+1
-  state = vars.states(:,:,k);
+  state = sol.states(:,:,k);
   ic = system.icFun.evaluate(state.value,0);
   cTraj   = [cTraj,;ic];
 end
@@ -174,10 +174,10 @@ rotationNavToView = [1,0,0;
 
 for k=1:N
 
-  R = vars.states(:,:,k).get('rotBodyToNav').value;
+  R = sol.states(:,:,k).get('rotBodyToNav').value;
   pTrajView = rotationNavToView*traj_p(:,k);
   pRefView = rotationNavToView*ref_p(:,k);
-  vView = rotationNavToView * vars.states(:,:,k).get('velocityNav').value;
+  vView = rotationNavToView * sol.states(:,:,k).get('velocityNav').value;
   rotView = rotationNavToView * R * rotationNavToView';
   rotRefView = rotationNavToView * reshape(ref_R(:,k),3,3) * rotationNavToView';
 

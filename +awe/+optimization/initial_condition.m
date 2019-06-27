@@ -6,7 +6,7 @@ function initial_condition(ch, x)
   v  = x.v;
   R  = x.R;
 
-  tether_ic = awe.models.full.rigid_tether_ic(p,v,l,ld);
+  tether_ic = awe.model.rigid_tether_ic(p,v,l,ld);
 
   cR = R.'*R - eye(3);
   cR = [cR(:,1);cR([2,3],2);cR(3,3)];

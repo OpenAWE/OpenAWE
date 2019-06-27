@@ -3,7 +3,7 @@ function point_constraints(ch, k, K, x)
 % initial condition
 if k ==1
   constraint = OclConstraint();
-  awe.optimization.power.initial_condition(constraint, x);
+  awe.optimization.initial_condition(constraint, x);
   
   ch.add(constraint.values, '==', 0);
   
@@ -25,8 +25,8 @@ if (k==K)
   RF = x.R;
   omegaF = x.omega;
   
-  [yaw0,pitch0,roll0] = awe.models.full.yaw_pitch_roll(R0);
-  [yawF,pitchF,rollF] = awe.models.full.yaw_pitch_roll(RF);
+  [yaw0,pitch0,roll0] = awe.model.yaw_pitch_roll(R0);
+  [yawF,pitchF,rollF] = awe.model.yaw_pitch_roll(RF);
   
   ch.add(p0, '==', pF);
   ch.add(v0, '==', vF);
