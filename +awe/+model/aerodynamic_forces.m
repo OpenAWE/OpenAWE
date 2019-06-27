@@ -1,4 +1,4 @@
-function f = forces( alpha, ...
+function f = aerodynamic_forces(alpha, ...
                                 beta, ...
                                 airspeed, ...
                                 omega, ...
@@ -31,11 +31,8 @@ CZ                          = CZ_q * qhat;
 CX                          = CX + CX_alpha;
 CZ                          = CZ + CZ_alpha;
 
-
 FX_BODY                     = CX * qbar * wingArea;
 FY_BODY                     = CY * qbar * wingArea;
 FZ_BODY                     = CZ * qbar * wingArea;
 
 f                           = [FX_BODY; FY_BODY; FZ_BODY];
-
-end
