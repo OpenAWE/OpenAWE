@@ -1,4 +1,4 @@
-N = 40;
+N = 60;
 T = 44;
 
 conf = awe.model.ampyx_ap2_conf();
@@ -11,9 +11,6 @@ conf.wind.exponent       = 0.12;
 
 conf.airDensity        = 1.225;
 conf.gravNav           = [0;0;9.81];
-
-% cable number of segments
-conf.nSegments         = 10;
 
 conf.w_referenceTracking = 1;
 conf.w_bodyAngularAccel = 1e2;
@@ -41,6 +38,8 @@ solver = ocl.Solver(T, @awe.optimization.variables, ...
 
 solver.setBounds('time', 0, T);
 
+solver.setBounds('lambda', 0, 10000);
+
 solver.setBounds('l', 1, 700);
 solver.setBounds('ld', -15, 20);
 
@@ -60,7 +59,7 @@ solver.setInitialBounds('p', [-10000;0;-10000], [10000;0;-100]);
 ig = solver.initialGuess();
 gridpoints = linspace(0, 1, N+1);
 
-ig{1}.add('time', gridpoints, T);
+ig{1}.add('time', [0 1], [0 T]);
 
 ig{1}.add('p', gridpoints, ref_p);
 ig{1}.add('v', gridpoints, ref_v);
@@ -70,14 +69,16 @@ ig{1}.add('R', gridpoints, rotRefCell);
 
 ig{1}.add('l', gridpoints, 400);
 
-ig{1}.add('R0', [0 1], reshape(ref_R(:,1),3,3))
+ig{1}.add('p0', [0 1], ref_p(:,1));
 ig{1}.add('v0', [0 1], ref_v(:,1));
+ig{1}.add('R0', [0 1], reshape(ref_R(:,1),3,3))
+
+g = ocl.simultaneous.getInitialGuessWithUserData(solver.stageList{1}, ig{1});
 
 % solve
-solver.setParameter('mu', 1);
+solver.setParameter('mu', 0);
 [sol,gridpoints] = solver.solve(ig);
 
-keyboard
 %
 %ocl.setParameter('mu',1);
 %[vars,times] = ocl.solve(vars);
@@ -137,10 +138,10 @@ alpha = zeros(N+1,1);
 beta = zeros(N+1,1);
 for k=1:N+1
   p = traj_p(:,k);
-  windNavAtAltitude(:,k) = awe.model.wind_at_altitude(system.modelParams.wind,p);
+  windNavAtAltitude(:,k) = awe.model.wind_at_altitude(conf.wind,p);
   R = traj_R{k};
   v = traj_v(:,k);
-  [airspeed(k),alpha(k),beta(k)] = awe.model.aerodynamic_forces( v, R, windNavAtAltitude(:,k) );
+  [airspeed(k),alpha(k),beta(k)] = awe.model.aerodynamic_angles( v, R, windNavAtAltitude(:,k) );
 end
 
 
@@ -154,16 +155,16 @@ subplot(5,1,5);plot(beta*180/pi);  ylabel('side slip angle deg');
 
 
 
-cTraj = [];
-dcTraj = [];
-for k=1:N+1
-  state = sol.states(:,:,k);
-  ic = system.icFun.evaluate(state.value,0);
-  cTraj   = [cTraj,;ic];
-end
-
-figure;hold on;grid on;
-plot(cTraj');
+% cTraj = [];
+% dcTraj = [];
+% for k=1:N+1
+%   state = sol.states(:,:,k);
+%   ic = system.icFun.evaluate(state.value,0);
+%   cTraj   = [cTraj,;ic];
+% end
+% 
+% figure;hold on;grid on;
+% plot(cTraj');
 
 
 % Plot trajectory ---------------------------------------------------
@@ -177,22 +178,14 @@ rotationNavToView = [1,0,0;
 
 for k=1:N
 
-  R = sol.states(:,:,k).get('rotBodyToNav').value;
+  R = sol.states(:,:,k).R.value;
   pTrajView = rotationNavToView*traj_p(:,k);
   pRefView = rotationNavToView*ref_p(:,k);
-  vView = rotationNavToView * sol.states(:,:,k).get('velocityNav').value;
+  vView = rotationNavToView * sol.states(:,:,k).v.value;
   rotView = rotationNavToView * R * rotationNavToView';
   rotRefView = rotationNavToView * reshape(ref_R(:,k),3,3) * rotationNavToView';
 
-  % Plot cable --------------------------------------------------------
-  if traj_ld(k) >= 0
-    line([0,pTrajView(1)],[0,pTrajView(2)],[0,pTrajView(3)],'LineWidth',0.8,'Color','g','LineStyle',':');
-  else
-    line([0,pTrajView(1)],[0,pTrajView(2)],[0,pTrajView(3)],'LineWidth',0.8,'Color','r','LineStyle',':');
-  end
-
-  % Plot orientation --------------------------------------------------
-
+  % Plot orientation of solution--------------------------------------------
   ex = s*rotView*[1;0;0];
   line([pTrajView(1),pTrajView(1)+ex(1)],...
    [pTrajView(2),pTrajView(2)+ex(2)],...
@@ -230,8 +223,15 @@ for k=1:N
   line([pTrajView(1),pTrajView(1)+ev(1)],...
    [pTrajView(2),pTrajView(2)+ev(2)],...
    [pTrajView(3),pTrajView(3)+ev(3)],'LineWidth',5,'Color','k','LineStyle','-');
-
+ 
+  % Plot cable --------------------------------------------------------
+  if traj_ld(k) >= 0
+    line([0,pTrajView(1)],[0,pTrajView(2)],[0,pTrajView(3)],'LineWidth',0.8,'Color','g','LineStyle',':');
+  else
+    line([0,pTrajView(1)],[0,pTrajView(2)],[0,pTrajView(3)],'LineWidth',0.8,'Color','r','LineStyle',':');
+  end
 end
+legend({'forward', 'wing', 'down'})
 hold off
 % ts = vars.get('time').value/ (CONTROL_INTERVALS+1);
 % viewStruct = CreatePlotView(ts,ts,fig);
