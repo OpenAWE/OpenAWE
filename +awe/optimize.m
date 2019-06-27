@@ -1,1 +1,1 @@
-awe.optimization.main
+awe.optimization.main_power
