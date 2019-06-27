@@ -8,6 +8,7 @@ conf.wind = struct;
 conf.wind.atBaseAltitude = [8;0;0];
 conf.wind.baseAltitude   = 6.5;
 conf.wind.exponent       = 0.12;
+conf.wind.is_constant = true;
 
 conf.airDensity        = 1.225;
 conf.gravNav           = [0;0;9.81];
@@ -28,6 +29,9 @@ conf.MAX_TENSION = 5000;
 conf.MIN_TENSION = 10;
 
 [ref_p,ref_v,ref_R] = awe.optimization.reference_path(N, T);
+
+figure;
+awe.plot.trajectory(ref_p, ref_v, ref_R, ones(size(ref_p,2), 1));
 
 solver = ocl.Solver(T, @awe.optimization.variables, ...
                     @(h,x,z,u,p) awe.optimization.dynamics(h, x, z, u, conf), ...
@@ -168,71 +172,12 @@ subplot(5,1,5);plot(beta*180/pi);  ylabel('side slip angle deg');
 
 
 % Plot trajectory ---------------------------------------------------
-fig = figure; hold on;grid on;
+figure;
+traj_R = reshape(cell2mat(traj_R),9,[]);
+awe.plot.trajectory(traj_p, traj_p, traj_R, traj_ld)
 
-s = 10;
 
-rotationNavToView = [1,0,0;
-                     0,-1,0;
-                     0,0,-1];
 
-for k=1:N
-
-  R = sol.states(:,:,k).R.value;
-  pTrajView = rotationNavToView*traj_p(:,k);
-  pRefView = rotationNavToView*ref_p(:,k);
-  vView = rotationNavToView * sol.states(:,:,k).v.value;
-  rotView = rotationNavToView * R * rotationNavToView';
-  rotRefView = rotationNavToView * reshape(ref_R(:,k),3,3) * rotationNavToView';
-
-  % Plot orientation of solution--------------------------------------------
-  ex = s*rotView*[1;0;0];
-  line([pTrajView(1),pTrajView(1)+ex(1)],...
-   [pTrajView(2),pTrajView(2)+ex(2)],...
-   [pTrajView(3),pTrajView(3)+ex(3)],'LineWidth',2,'Color','r','LineStyle','-');
-
-  ey = s*rotView*[0;1;0];
-  line([pTrajView(1),pTrajView(1)+ey(1)],...
-   [pTrajView(2),pTrajView(2)+ey(2)],...
-   [pTrajView(3),pTrajView(3)+ey(3)],'LineWidth',2,'Color','g','LineStyle','-');
-
-  ez = s*rotView*[0;0;1];
-  line([pTrajView(1),pTrajView(1)+ez(1)],...
-   [pTrajView(2),pTrajView(2)+ez(2)],...
-   [pTrajView(3),pTrajView(3)+ez(3)],'LineWidth',2,'Color','b','LineStyle','-');
-
-  % Plot reference orientation --------------------------------------------------
-  ex = s*rotRefView*[1;0;0];
-  line([pRefView(1),pRefView(1)+ex(1)],...
-   [pRefView(2),pRefView(2)+ex(2)],...
-   [pRefView(3),pRefView(3)+ex(3)],'LineWidth',2,'Color','r','LineStyle','--');
-
-  ey = s*rotRefView*[0;1;0];
-  line([pRefView(1),pRefView(1)+ey(1)],...
-   [pRefView(2),pRefView(2)+ey(2)],...
-   [pRefView(3),pRefView(3)+ey(3)],'LineWidth',2,'Color','g','LineStyle','--');
-
-  ez = s*rotRefView*[0;0;1];
-  line([pRefView(1),pRefView(1)+ez(1)],...
-   [pRefView(2),pRefView(2)+ez(2)],...
-   [pRefView(3),pRefView(3)+ez(3)],'LineWidth',2,'Color','b','LineStyle','--');
-
-  % plot flight direction
-  v = vView;
-  ev = s*v/norm(v);
-  line([pTrajView(1),pTrajView(1)+ev(1)],...
-   [pTrajView(2),pTrajView(2)+ev(2)],...
-   [pTrajView(3),pTrajView(3)+ev(3)],'LineWidth',5,'Color','k','LineStyle','-');
- 
-  % Plot cable --------------------------------------------------------
-  if traj_ld(k) >= 0
-    line([0,pTrajView(1)],[0,pTrajView(2)],[0,pTrajView(3)],'LineWidth',0.8,'Color','g','LineStyle',':');
-  else
-    line([0,pTrajView(1)],[0,pTrajView(2)],[0,pTrajView(3)],'LineWidth',0.8,'Color','r','LineStyle',':');
-  end
-end
-legend({'forward', 'wing', 'down'})
-hold off
 % ts = vars.get('time').value/ (CONTROL_INTERVALS+1);
 % viewStruct = CreatePlotView(ts,ts,fig);
 % UpdatePlotView( viewStruct, pTraj, rotationNav)

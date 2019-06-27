@@ -38,9 +38,9 @@ function dynamics(eh, x, z, u, conf)
                                               conf.dragCoefficient, ...
                                               conf.cableDensity);
 
-  forces      = R * aeroForcesBody + tether_force + conf.gravNav;
+  forces      = R * aeroForcesBody + tether_force;
 
-  accelNav    = forces / mass;
+  accelNav    = forces / mass + conf.gravNav;
 
   RDot = R * [0,         omega(3),  -omega(2); ...
               -omega(3), 0,         omega(1) ; ...
