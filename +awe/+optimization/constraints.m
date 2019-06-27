@@ -1,10 +1,10 @@
 function constraints(ch, x, conf)
-positionNav = x.get('positionNav');
-velocityNav = x.get('velocityNav');
-rotBodyToNav = x.get('rotBodyToNav');
-
-windNavAtAltitude = GetWindAtAltitude(conf.wind, positionNav);
-
+% positionNav = x.get('positionNav');
+% velocityNav = x.get('velocityNav');
+% rotBodyToNav = x.get('rotBodyToNav');
+% 
+% windNavAtAltitude = GetWindAtAltitude(conf.wind, positionNav);
+% 
 
 % [airspeed,alpha,beta] = AerodynamicAngles( velocityNav, rotBodyToNav, windNavAtAltitude);
 % ch.add(airspeed,'<=',conf.MAX_AIRSPEED);

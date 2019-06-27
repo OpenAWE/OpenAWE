@@ -1,11 +1,14 @@
-function point_constraints(ch, k, K, x)
+function point_constraints(ch, k, K, x, conf)
 
 % initial condition
 if k ==1
-  constraint = OclConstraint();
-  awe.optimization.initial_condition(constraint, x);
   
-  ch.add(constraint.values, '==', 0);
+  tether_ic = awe.model.rigid_tether_ic(x.p,x.v,conf.tether_length);
+  ch.add(tether_ic, '==', 0);
+  
+  cR = x.R.'*x.R - eye(3);
+  cR = [cR(:,1);cR([2,3],2);cR(3,3)];
+  ch.add(cR, '==', 0);
   
 %   ch.add(x.p, '==', x.p0);
 %   ch.add(x.v, '==', x.v0);

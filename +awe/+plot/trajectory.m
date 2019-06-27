@@ -8,7 +8,7 @@ nav2view = [1,0,0;
 for k=1:size(p,2)
   p_view = nav2view * p(:,k);
   v_view = nav2view * v(:,k);
-  R_view = nav2view * reshape(R(:,k),3,3) * nav2view';
+  R_view = nav2view * reshape(R(:,k),3,3);
   
   % Plot reference orientation --------------------------------------------------
   ex = s*R_view*[1;0;0];

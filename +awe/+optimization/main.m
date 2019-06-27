@@ -1,11 +1,13 @@
-N = 60;
+N = 50;
 T = 44;
 
 conf = awe.model.ampyx_ap2_conf();
 
+conf.tether_length = 360;
+
 % setup wind and environment
 conf.wind = struct;
-conf.wind.atBaseAltitude = [8;0;0];
+conf.wind.atBaseAltitude = [12;0;0];
 conf.wind.baseAltitude   = 6.5;
 conf.wind.exponent       = 0.12;
 conf.wind.is_constant = true;
@@ -30,22 +32,14 @@ conf.MIN_TENSION = 10;
 
 [ref_p,ref_v,ref_R] = awe.optimization.reference_path(N, T);
 
-figure;
-awe.plot.trajectory(ref_p, ref_v, ref_R, ones(size(ref_p,2), 1));
-
 solver = ocl.Solver(T, @awe.optimization.variables, ...
                     @(h,x,z,u,p) awe.optimization.dynamics(h, x, z, u, conf), ...
                     @(h,x,z,u,p) awe.optimization.path_cost(h, x, u, conf), ...
                     @(h,k,K,x,p) awe.optimization.point_cost(h, k, K, x, p, conf, ref_p), ...
-                    @(h,k,K,x,p) awe.optimization.point_constraints(h,k,K,x), ...
+                    @(h,k,K,x,p) awe.optimization.point_constraints(h,k,K,x,conf), ...
                     'N', N);
 
-solver.setBounds('time', 0, T);
-
-solver.setBounds('lambda', 0, 10000);
-
-solver.setBounds('l', 1, 700);
-solver.setBounds('ld', -15, 20);
+solver.setBounds('lambda', 1, 100000);
 
 solver.setBounds('p', [-10000; -10000; -10000], [10000; 10000; -100]);
 solver.setBounds('v', -60, 60);
@@ -53,17 +47,12 @@ solver.setBounds('R', -1.1, 1.1);
 solver.setBounds('omega', -1, 1);
 
 solver.setBounds('omegad', -0.2, 0.2);
-solver.setBounds('ldd', -2.3, 2.4);
 
-solver.setInitialBounds('iwork', 0);
-solver.setInitialBounds('time', 0);
-solver.setInitialBounds('p', [-10000;0;-10000], [10000;0;-100]);
+% solver.setInitialBounds('p', [-10000;0;-10000], [10000;0;-100]);
 
 % assign initial guess
 ig = solver.initialGuess();
 gridpoints = linspace(0, 1, N+1);
-
-ig{1}.add('time', [0 1], [0 T]);
 
 ig{1}.add('p', gridpoints, ref_p);
 ig{1}.add('v', gridpoints, ref_v);
@@ -71,16 +60,9 @@ ig{1}.add('v', gridpoints, ref_v);
 rotRefCell = num2cell(reshape(ref_R,3,3, size(ref_R,2)), [1,2]);
 ig{1}.add('R', gridpoints, rotRefCell);
 
-ig{1}.add('l', gridpoints, 400);
-
-ig{1}.add('p0', [0 1], ref_p(:,1));
-ig{1}.add('v0', [0 1], ref_v(:,1));
-ig{1}.add('R0', [0 1], reshape(ref_R(:,1),3,3))
-
 g = ocl.simultaneous.getInitialGuessWithUserData(solver.stageList{1}, ig{1});
 
 % solve
-solver.setParameter('mu', 0);
 [sol,gridpoints] = solver.solve(ig);
 
 %
@@ -170,8 +152,11 @@ subplot(5,1,5);plot(beta*180/pi);  ylabel('side slip angle deg');
 % figure;hold on;grid on;
 % plot(cTraj');
 
+% Plot reference trajectory -----------------------------------------
+figure;
+awe.plot.trajectory(ref_p, ref_v, ref_R, ones(size(ref_p,2), 1));
 
-% Plot trajectory ---------------------------------------------------
+% Plot solution trajectory ---------------------------------------------------
 figure;
 traj_R = reshape(cell2mat(traj_R),9,[]);
 awe.plot.trajectory(traj_p, traj_p, traj_R, traj_ld)
