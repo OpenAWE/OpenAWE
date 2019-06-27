@@ -48,7 +48,7 @@ solver.setBounds('omega', -1, 1);
 
 solver.setBounds('omegad', -0.2, 0.2);
 
-% solver.setInitialBounds('p', [-10000;0;-10000], [10000;0;-100]);
+solver.setInitialBounds('p', [-10000;0;-10000], [10000;0;-100]);
 
 % assign initial guess
 ig = solver.initialGuess();
@@ -60,28 +60,20 @@ ig{1}.add('v', gridpoints, ref_v);
 rotRefCell = num2cell(reshape(ref_R,3,3, size(ref_R,2)), [1,2]);
 ig{1}.add('R', gridpoints, rotRefCell);
 
-g = ocl.simultaneous.getInitialGuessWithUserData(solver.stageList{1}, ig{1});
-
 % solve
 [sol,gridpoints] = solver.solve(ig);
 
-%
-%ocl.setParameter('mu',1);
-%[vars,times] = ocl.solve(vars);
-%
-%ocl.setParameter('time',5, T+20);
-%vars = ocl.solve(vars);
+%% plot solution
+t_states = gridpoints.states.value;
+t_controls = gridpoints.controls.value;
+t_collocation = gridpoints.integrator(:).value;
 
-% plot solution
 traj_p = sol.states.p.value;
 traj_v = sol.states.v.value;
 traj_omega = sol.states.omega.value;
 traj_R = sol.states.R.value;
+traj_lambda = sol.integrator.algvars.lambda.value;
 
-traj_l   = sol.states.l.value;
-traj_ld  = sol.states.ld.value;
-
-traj_ldd = sol.controls.ldd.value;
 traj_omegad  = sol.controls.omegad.value;
 
 figure;hold on;grid on;
@@ -91,28 +83,12 @@ plot3(traj_p(1,end),traj_p(2,end),traj_p(3,end),'ro');
 plot3(ref_p(1,:),ref_p(2,:),ref_p(3,:),'k');
 axis equal
 
-% average power
-%mechanicalWork = zTraj.*lTraj(2:end).*dlTraj(2:end);
-%integratedWork = cumtrapz(times(2:end),mechanicalWork)/times(end);
-%integratedWorkState = vars.states.get('integratedWork').value;
-%integratedWorkState = integratedWorkState/times(end);
-%figure;hold on;grid on;
-%plot(times(2:end),mechanicalWork,'b');
-%plot(times(2:end),integratedWork,'r');
-%plot(times,integratedWorkState,'g');
-%legend('mechanical work','average power (trapezoidal)','avarage power (integrator)')
-
-
-
 figure;hold on;grid on;
-subplot(8,1,1);plot(traj_p');  ylabel('p');legend({'x','y','z'});
-subplot(8,1,2);plot(traj_v'); ylabel('v');legend({'x','y','z'});
-subplot(8,1,3);plot(traj_omega');  ylabel('w');legend({'x','y','z'});
-subplot(8,1,4);plot(traj_omegad');  ylabel('dw');legend({'x','y','z'});
-subplot(8,1,5);plot(traj_l');  ylabel('l');
-subplot(8,1,6);plot(traj_ld');  ylabel('dl');
-subplot(8,1,7);plot(traj_ldd');  ylabel('ddl');
-%subplot(8,1,8);plot(zTraj');  ylabel('lambda');
+subplot(5,1,1);plot(t_states,traj_p');  ylabel('p');legend({'x','y','z'});
+conf.w_referenceTrackingsubplot(5,1,2);plot(t_states,traj_v'); ylabel('v');legend({'x','y','z'});
+subplot(5,1,3);plot(t_states,traj_omega');  ylabel('w');legend({'x','y','z'});
+subplot(5,1,4);plot(t_controls,traj_omegad');  ylabel('dw');legend({'x','y','z'});
+subplot(5,1,5);plot(t_collocation,traj_lambda');  ylabel('lambda');
 
 
 airspeed = zeros(N+1,1);
@@ -133,11 +109,10 @@ end
 
 
 figure;hold on;grid on;
-subplot(5,1,1);plot(airspeed);  ylabel('airspeed');
-subplot(5,1,2);plot(groundSpeed);  ylabel('groundSpeed');
-%subplot(5,1,3);plot(tension');  ylabel('tension');
-subplot(5,1,4);plot(alpha*180/pi);  ylabel('angle of attack deg');
-subplot(5,1,5);plot(beta*180/pi);  ylabel('side slip angle deg');
+subplot(4,1,1);plot(airspeed);  ylabel('airspeed');
+subplot(4,1,2);plot(groundSpeed);  ylabel('groundSpeed');
+subplot(4,1,3);plot(alpha*180/pi);  ylabel('angle of attack deg');
+subplot(4,1,4);plot(beta*180/pi);  ylabel('side slip angle deg');
 
 
 
@@ -159,7 +134,7 @@ awe.plot.trajectory(ref_p, ref_v, ref_R, ones(size(ref_p,2), 1));
 % Plot solution trajectory ---------------------------------------------------
 figure;
 traj_R = reshape(cell2mat(traj_R),9,[]);
-awe.plot.trajectory(traj_p, traj_p, traj_R, traj_ld)
+awe.plot.trajectory(traj_p, traj_p, traj_R, ones(size(traj_p,2), 1));
 
 
 

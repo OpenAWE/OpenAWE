@@ -10,10 +10,9 @@ function dynamics(eh, x, z, u, conf)
   v     = x.v;
   R     = x.R;
   omega = x.omega;
-
+  
   omegad = u.omegad;
-
-  lambda          = z.lambda;
+  lambda = z.lambda;
 
   windNav = awe.model.wind_at_altitude(conf.wind, p);
   [airspeed,alpha,beta] = awe.model.aerodynamic_angles(v, R, windNav);
