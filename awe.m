@@ -1,0 +1,1 @@
+addpath(fileparts(which('awe')));

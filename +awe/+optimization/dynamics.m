@@ -12,7 +12,7 @@ function dynamics(eh, x, z, u, conf)
   omega = x.omega;
   
   omegad = u.omegad;
-  lambda = z.lambda;
+  lambda = u.lambda;
 
   windNav = awe.model.wind_at_altitude(conf.wind, p);
   [airspeed,alpha,beta] = awe.model.aerodynamic_angles(v, R, windNav);
@@ -42,7 +42,7 @@ function dynamics(eh, x, z, u, conf)
               -omega(3), 0,         omega(1) ; ...
               omega(2),  -omega(1), 0        ].';
 
-  tether_eq = awe.model.rigid_tether_equation(p, v, accelNav);
+%   tether_eq = awe.model.rigid_tether_equation(p, v, accelNav);
 
 
   eh.setODE('p',      v);
@@ -50,4 +50,4 @@ function dynamics(eh, x, z, u, conf)
   eh.setODE('R',      RDot);
   eh.setODE('omega',  omegad);
 
-  eh.setAlgEquation(tether_eq);
+%   eh.setAlgEquation(tether_eq);
