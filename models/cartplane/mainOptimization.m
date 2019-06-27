@@ -3,7 +3,7 @@
 % Author:  Marie Curie PhD student Jonas Koenemann & Giovanni Licitra
 % Data:    16-02-2016
 % addpath('D:\Software\casadi-matlabR2014a-v3.0.0-rc2')
-
+clc;clear all;close all
 import casadi.*
 % Parameters =============================================================
 p                          = struct;
@@ -37,8 +37,6 @@ cDplane       = p.aeroDragCoefficientPlane;
 cDaeroCart    = p.aeroDragCoefficientCart;                
 cDrollCart    = p.rollDragCoefficientCart;
 
-
-
 % numer of segments/nodes
 N = 1;            % number of nodes
 lengthCable   = 50;
@@ -49,12 +47,8 @@ cD_node = 0.82;       % tether drag coefficient
 mNode   = mCable/N;     % mass node 
 
 
-simulationTime = 10;  % seconds
+simulationTime = 0;  % seconds
 simulationTimestep = 0.02;
-
-
-
-
 
 % array to collect variables on the way
 variables = {};
@@ -134,8 +128,6 @@ for k=1:N-1
   FNodes(:,k+1) = FNodes(:,k+1) - FtNode;
 end
 
-
-
 % ode withoout constraint equations
 
 aCart = FCart / mCart;
@@ -148,8 +140,6 @@ aNodes(:,end) = FNodes(:,end) .* mNode ./ mPlane;
 pNode = pNodes(:,1);
 vNode = vNodes(:,1);
 aNode = aNodes(:,1);
-
-
 
 C   = norm_2([pCart;0]-pNode)^2 - lengthSegment^2;
 dC  = jtimes(C,[pCart;pNode], [vCart;vNode]);
@@ -269,166 +259,175 @@ for i=1:simulationTime/simulationTimestep
   
 end
 toc
-
-VisualizeMultiNode(tsim,Xsim,Tsim,Asim);
+% VisualizeMultiNode(tsim,Xsim,Tsim,Asim);
 
 
 
 
 
 %% COLLOCATION METHOD
-% nx = numel(dae.x);
-% nz = numel(dae.z);
-% nu = numel(dae.p);
-% 
-% 
-% T = 10.0;            
-% horizonLength = 100; % Caution; mumps linear solver fails when too large
-% 
-% % Degree of interpolating polynomial
-% collocationDegree = 4;
-% 
-% % Get collocation points
-% collocationRoots = collocationPoints(collocationDegree, 'radau');
-% 
-% collfun = simpleColl(dae,collocationRoots,T/horizonLength);
-% collfun = collfun.expand();
-% 
-% 
-% % variables along horizon
-% stateTrajectory = {};
-% for i=1:horizonLength+1
-%    stateTrajectory{i} = MX.sym(['X_' num2str(i)],nx);
-% end
-% collocationStates = {};
-% algebraicStateTrajectory = {};
-% controlTrajectory = {};
-% for i=1:horizonLength
-%    collocationStates{i}          = MX.sym(['XC_' num2str(i)],nx,collocationDegree);
-%    algebraicStateTrajectory{i}   = MX.sym(['Z_' num2str(i)],nz,collocationDegree);
-%    controlTrajectory{i}          = MX.sym(['U_' num2str(i)],nu);
-% end
-% 
-% variablesBlock = struct();
-% variablesBlock.X  = Sparsity.dense(nx,1);
-% variablesBlock.XC = Sparsity.dense(nx,collocationDegree);
-% variablesBlock.Z  = Sparsity.dense(nz,collocationDegree);
-% variablesBlock.U  = Sparsity.dense(nu,1);
-% 
-% invariants = Function('invariants',{dae.x},{[constraints;dConstraints]});
-% 
-% 
-% % Simple bounds on states
-% lbx = {};
-% ubx = {};
-% 
-% % List of constraints
-% g = {};
-% 
-% % List of all decision variables (determines ordering)
-% V = {};
-% for k=1:horizonLength
-%   % Add decision variables
-%   V = {V{:} casadi_vec(variablesBlock,'X',stateTrajectory{k},'XC',collocationStates{k},'Z',algebraicStateTrajectory{k},'U',controlTrajectory{k})};
-%   
-%   if k==1
-%     % Bounds at t=0
-%     thisStateLB = initialState;
-%     thisStateUB = initialState;
-%     
-%     lbx = {lbx{:} casadi_vec(variablesBlock,-inf,'X',thisStateLB)};
-%     ubx = {ubx{:} casadi_vec(variablesBlock,inf, 'X',thisStateUB)};
-%   else
-%     % Bounds on state
-%     % add height>=0 here
-%     lbx = {lbx{:} casadi_vec(variablesBlock,-inf)};
-%     ubx = {ubx{:} casadi_vec(variablesBlock,inf)};
-%   end
-%   % Obtain collocation expressions
-%   coll_out = collfun({stateTrajectory{k},collocationStates{k},algebraicStateTrajectory{k},controlTrajectory{k}});
-% 
-%   g = {g{:} coll_out{2}};         % collocation constraints
-%   g = {g{:} stateTrajectory{k+1}-coll_out{1}}; % gap closing
-% 
-% end
-%   
-% V = {V{:} stateTrajectory{end}};
-% 
-% % Bounds for final t
-% finalStateLB = -inf*ones(numel(initialState),1);
-% finalStateUB = inf*ones(numel(initialState),1);
-% 
-% 
-% % constant velocity for cart v = 15
+nx = numel(dae.x);
+nz = numel(dae.z);
+nu = numel(dae.p);
+
+
+T = 10.0;            
+horizonLength = 100; % Caution; mumps linear solver fails when too large
+
+% Degree of interpolating polynomial
+collocationDegree = 4;
+
+% Get collocation points
+collocationRoots = collocationPoints(collocationDegree, 'radau');
+
+collfun = simpleColl(dae,collocationRoots,T/horizonLength);
+collfun = collfun.expand();
+
+
+% variables along horizon
+stateTrajectory = {};
+for i=1:horizonLength+1
+   stateTrajectory{i} = MX.sym(['X_' num2str(i)],nx);
+end
+collocationStates = {};
+algebraicStateTrajectory = {};
+controlTrajectory = {};
+for i=1:horizonLength
+   collocationStates{i}          = MX.sym(['XC_' num2str(i)],nx,collocationDegree);
+   algebraicStateTrajectory{i}   = MX.sym(['Z_' num2str(i)],nz,collocationDegree);
+   controlTrajectory{i}          = MX.sym(['U_' num2str(i)],nu);
+end
+
+variablesBlock = struct();
+variablesBlock.X  = Sparsity.dense(nx,1);
+variablesBlock.XC = Sparsity.dense(nx,collocationDegree);
+variablesBlock.Z  = Sparsity.dense(nz,collocationDegree);
+variablesBlock.U  = Sparsity.dense(nu,1);
+
+invariants = Function('invariants',{dae.x},{[constraints;dConstraints]});
+
+
+% Simple bounds on states
+lbx = {};
+ubx = {};
+
+% List of constraints
+g = {};
+
+% List of all decision variables (determines ordering)
+V = {};
+for k=1:horizonLength
+  % Add decision variables
+  V = {V{:} casadi_vec(variablesBlock,'X',stateTrajectory{k},'XC',collocationStates{k},'Z',algebraicStateTrajectory{k},'U',controlTrajectory{k})};
+  
+  if k==1
+    % Bounds at t=0
+    thisStateLB = initialState;
+    thisStateUB = initialState;
+    
+    lbx = {lbx{:} casadi_vec(variablesBlock,-inf,'X',thisStateLB)};
+    ubx = {ubx{:} casadi_vec(variablesBlock,inf, 'X',thisStateUB)};
+  else
+    % Bounds on state
+    % add height>=0 here
+    lbx = {lbx{:} casadi_vec(variablesBlock,-inf)};
+    ubx = {ubx{:} casadi_vec(variablesBlock,inf)};
+  end
+  % Obtain collocation expressions
+  coll_out = collfun({stateTrajectory{k},collocationStates{k},algebraicStateTrajectory{k},controlTrajectory{k}});
+
+  g = {g{:} coll_out{2}};         % collocation constraints
+  g = {g{:} stateTrajectory{k+1}-coll_out{1}}; % gap closing
+
+end
+  
+V = {V{:} stateTrajectory{end}};
+
+% Bounds for final t
+finalStateLB = -inf*ones(numel(initialState),1);
+finalStateUB = inf*ones(numel(initialState),1);
+
+
+% constant velocity for cart v = 15
 % finalStateLB(2) = 11;
 % finalStateUB(2) = 20;
-% 
-% % cart at x=10
-% % finalStateLB(1) = 10;
-% % finalStateUB(1) = 10;
-% 
-% 
-% % plane at 30 height zero vertical velocity
-% % finalStateLB(end-2) = -30; 
-% % finalStateLB(end) = 0;
-% % finalStateUB(end-2) = -30; 
-% % finalStateUB(end) = 0;
-% 
-% 
-% 
-% 
-% lbx = {lbx{:} finalStateLB};
-% ubx = {ubx{:} finalStateUB};
-% 
-% 
-% % cost function
-% controlVector = vertcat(controlTrajectory{:});
-% 
-% inv_out = invariants({stateTrajectory{1}});
-% nlp = struct('x',vertcat(V{:}), 'f',(controlVector'*controlVector), 'g', [inv_out{1};vertcat(g{:})]);
-% 
-% nlpfun = Function('nlp',nlp,char('x','p'),char('f','g'));
-% 
-% 
-% nlpopts.ipopt.linear_solver = 'ma97';
-% solver = nlpsol('solver','ipopt',nlp,nlpopts);
-% 
-% 
-% x0_guess = initialState;
-% z_guess  = zeros(nz,1);
-% u_guess  = 0;
-% x0 = [repmat([repmat(x0_guess,collocationDegree+1,1);repmat(z_guess,collocationDegree,1);u_guess],horizonLength,1);x0_guess];
-% 
-% args = struct;
-% args.x0 = x0;
-% args.lbx = vertcat(lbx{:});
-% args.ubx = vertcat(ubx{:});
-% args.lbg = 0;
-% args.ubg = 0;
-% 
-% out = solver(args);
-% 
-% outV  = out.x;
-% 
-% 
-% 
-% sizeBlock = numel(casadi_struct2vec(variablesBlock));
-% outVariableBlocks = vertsplit(out.x,sizeBlock);
-% 
-% outControlTrajectory = [];
-% for r=outVariableBlocks(1:end-1)
-%     rs = casadi_vec2struct(variablesBlock,r{1});
-%     outControlTrajectory = [outControlTrajectory full(rs.U)];
-% end
-% 
-% outStateTrajectory = [];
-% for r=outVariableBlocks(1:end-1)
-%     rs = casadi_vec2struct(variablesBlock,r{1});
-%     outStateTrajectory = [outStateTrajectory full(rs.X)];
-% end
+
+% cart at x=10
+% finalStateLB(1) = 10;
+% finalStateUB(1) = 10;
+
+
+% plane at 30 height zero vertical velocity
+finalStateLB(end-2) = -40; 
+finalStateLB(end) = 0;
+finalStateUB(end-2) = -40; 
+finalStateUB(end) = 0;
+
+
+
+
+lbx = {lbx{:} finalStateLB};
+ubx = {ubx{:} finalStateUB};
+
+
+% cost function
+controlVector = vertcat(controlTrajectory{:});
+
+inv_out = invariants({stateTrajectory{1}});
+nlp = struct('x',vertcat(V{:}), 'f',(controlVector'*controlVector), 'g', [inv_out{1};vertcat(g{:})]);
+
+nlpfun = Function('nlp',nlp,char('x','p'),char('f','g'));
+
+
+nlpopts.ipopt.linear_solver = 'ma86';
+solver = nlpsol('solver','ipopt',nlp,nlpopts);
+
+
+x0_guess = initialState;
+z_guess  = zeros(nz,1);
+u_guess  = 0;
+x0 = [repmat([repmat(x0_guess,collocationDegree+1,1);repmat(z_guess,collocationDegree,1);u_guess],horizonLength,1);x0_guess];
+
+args = struct;
+args.x0 = x0;
+args.lbx = vertcat(lbx{:});
+args.ubx = vertcat(ubx{:});
+args.lbg = 0;
+args.ubg = 0;
+
+out = solver(args);
+
+outV  = out.x;
+
+
+
+sizeBlock = numel(casadi_struct2vec(variablesBlock));
+outVariableBlocks = vertsplit(out.x,sizeBlock);
+
+outControlTrajectory = [];
+for r=outVariableBlocks(1:end-1)
+    rs = casadi_vec2struct(variablesBlock,r{1});
+    outControlTrajectory = [outControlTrajectory full(rs.U)];
+end
+
+outStateTrajectory = [];
+for r=outVariableBlocks(1:end-1)
+    rs = casadi_vec2struct(variablesBlock,r{1});
+    outStateTrajectory = [outStateTrajectory full(rs.X)];
+end
 % outStateTrajectory = [outStateTrajectory full(outVariableBlocks{end})];
-% 
-% tsim = 0:T/horizonLength:T;
-% VisualizeMultiNode(tsim,outStateTrajectory')
-% 
-% 
+
+
+outAlgebraicStateTrajectory = [];
+for r=outVariableBlocks(1:end-1)
+    rs = casadi_vec2struct(variablesBlock,r{1});
+    outAlgebraicStateTrajectory = [outAlgebraicStateTrajectory full(rs.Z(1))];
+end
+
+
+tsim = 0:T/horizonLength:T-T/horizonLength;
+
+% load('outOptimization.mat')
+VisualizeMultiNode(tsim,outStateTrajectory',outAlgebraicStateTrajectory',outControlTrajectory);
+
+
