@@ -1,4 +1,6 @@
 function accel = linear_acceleration(p, v, R, omega, lambda, conf)
+% accel = linear_acceleration(p, v, R, omega, lambda, conf)
+
 % Get access to the system parameters
 wind = conf.wind;
 wingArea = conf.wingArea;

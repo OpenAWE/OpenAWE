@@ -7,7 +7,7 @@ conf.tether_length = 330;
 
 % setup wind and environment
 conf.wind = struct;
-conf.wind.atBaseAltitude = [12;0;0];
+conf.wind.atBaseAltitude = [-12;0;0];
 conf.wind.baseAltitude   = 6.5;
 conf.wind.exponent       = 0.12;
 conf.wind.is_constant    = true;
