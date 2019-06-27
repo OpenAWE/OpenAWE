@@ -46,7 +46,7 @@ solver.setBounds('ld', -15, 20);
 
 solver.setBounds('p', [-10000; -10000; -10000], [10000; 10000; -100]);
 solver.setBounds('v', -60, 60);
-solver.setBounds('R', -1.1, 1.2);
+solver.setBounds('R', -1.1, 1.1);
 solver.setBounds('omega', -1, 1);
 
 solver.setBounds('omegad', -0.2, 0.2);
@@ -65,13 +65,16 @@ ig{1}.add('time', gridpoints, T);
 ig{1}.add('p', gridpoints, ref_p);
 ig{1}.add('v', gridpoints, ref_v);
 
-rotRefCell = squeeze(num2cell(reshape(ref_R,3,3, size(ref_R,2)), [1,2]));
+rotRefCell = num2cell(reshape(ref_R,3,3, size(ref_R,2)), [1,2]);
 ig{1}.add('R', gridpoints, rotRefCell);
 
 ig{1}.add('l', gridpoints, 400);
 
+ig{1}.add('R0', [0 1], reshape(ref_R(:,1),3,3))
+ig{1}.add('v0', [0 1], ref_v(:,1));
+
 % solve
-solver.setParameter('mu', 0);
+solver.setParameter('mu', 1);
 [sol,gridpoints] = solver.solve(ig);
 
 keyboard
