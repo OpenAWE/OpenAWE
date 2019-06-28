@@ -7,7 +7,7 @@ omega = x(16:18);
 height = -p(3);
 sinkrate = v(3);
 
-[airspeed,alpha,~] = awe.model.aerodynamic_angles(v,R, conf.wind.atBaseAltitude);
+[airspeed,alpha,~] = awe.model.aerodynamic_angles(v, R, conf.wind.atBaseAltitude);
 
 if height < 100 && airspeed > 10 && sinkrate > 0
   alpha_des = 0.4;
@@ -26,3 +26,5 @@ if omega(2) < pitchrate_des
 else
   omega_dot = [0;-0.2;0];
 end
+
+lambda = 0;

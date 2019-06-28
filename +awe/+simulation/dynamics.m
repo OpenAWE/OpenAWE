@@ -4,8 +4,7 @@ function xd = dynamics(x, conf, controller)
   R     = reshape(x(7:15), 3, 3);
   omega = x(16:18);
   
-  omegad = controller(x,conf);
-  lambda = 0;
+  [omegad, lambda] = controller(x,conf);
 
   R_dot = R * [0,         omega(3),  -omega(2); ...
               -omega(3), 0,         omega(1) ; ...
