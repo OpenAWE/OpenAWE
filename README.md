@@ -9,10 +9,9 @@ Talk by Giovanni Licitra at the Airborne Wind Energy Conference 2017:
 
 ## Quick start
 
-* Get [OpenOCL](https://github.com/openocl/openocl), latest master branch
 * Get [OpenAWE](https://github.com/openawe/openawe) from the github project
 * Run `awe.optimization.main_power`
-* (optional) Get [HSL solver for iptop](http://www.hsl.rl.ac.uk/ipopt/) and set ```options.nlp.ipopt.linear_solver = 'ma27';```
+* (optional) Get [HSL solver for iptop](http://www.hsl.rl.ac.uk/ipopt/) and set ```opts.ipopt.linear_solver = 'ma27';```
 
 ## Publications
 
