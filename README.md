@@ -9,7 +9,7 @@ Talk by Giovanni Licitra at the Airborne Wind Energy Conference 2017:
 
 ## Quick start
 
-* Get [OpenAWE](https://github.com/openawe/openawe) from the github project
+* Clone master or [download OpenAWE](https://github.com/OpenAWE/OpenAWE/archive/master.zip)
 * Run `awe.optimization.main_power`
 * (optional) Get [HSL solver for iptop](http://www.hsl.rl.ac.uk/ipopt/) and set ```opts.ipopt.linear_solver = 'ma27';```
 
