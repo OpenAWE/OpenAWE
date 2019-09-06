@@ -24,7 +24,7 @@ conf.w_beta = 1e2;
 conf.w_integratedWork = 1e-3;
 
 conf.MAX_AIRSPEED = 32;
-conf.MIN_AIRSPEED = 13;
+conf.MIN_AIRSPEED = 10;
 conf.MAX_ALPHA = 0.16;
 conf.MIN_ALPHA = -0.1;
 conf.MAX_BETA = 0.3;
@@ -34,18 +34,17 @@ conf.MIN_TENSION = 10;
 
 [ref_p,ref_v,ref_R] = awe.optimization.reference_path(N, T);
 
-opts = CasadiOptions();
+opts = ocl.casadi.CasadiOptions();
 opts.ipopt.linear_solver = 'ma27';
 
 solver = ocl.Solver(T, @awe.optimization.variables, ...
                     @(h,x,z,u,p) awe.optimization.dynamics(h, x, z, u, conf), ...
                     @(h,x,z,u,p) awe.optimization.path_cost(h, x, u, conf), ...
                     @(h,k,K,x,p) awe.optimization.point_cost(h, k, K, x, p, conf, ref_p), ...
-                    @(h,k,K,x,p) awe.optimization.point_constraints(h,k,K,x,conf), ...
                     'N', N, ...
                     'casadi_options', opts);
 
-% solver.setBounds('lambda', 1, 100000);
+solver.setBounds('lambda', 1, 100000);
 
 solver.setBounds('p', [-10000; -10000; -10000], [10000; 10000; -100]);
 solver.setBounds('v', -60, 60);
@@ -54,17 +53,16 @@ solver.setBounds('omega', -1, 1);
 
 solver.setBounds('omegad', -0.2, 0.2);
 
-solver.setInitialBounds('p', [-10000;0;-10000], [10000;0;-100]);
+solver.setInitialBounds('p', ref_p(:,1));
+solver.setInitialBounds('v', ref_v(:,1));
+solver.setInitialBounds('R', reshape(ref_R(:,1), 3, 3));
 
-% assign initial guess
-ig = solver.initialGuess();
-gridpoints = linspace(0, 1, N+1);
 
-ig{1}.add('p', gridpoints, ref_p);
-ig{1}.add('v', gridpoints, ref_v);
+ig = solver.getInitialGuess();
 
-rotRefCell = num2cell(reshape(ref_R,3,3, size(ref_R,2)), [1,2]);
-ig{1}.add('R', gridpoints, rotRefCell);
+ig.states.p.set(ref_p);
+ig.states.v.set(ref_v);
+ig.states.R.set(ref_R);
 
 % solve
 [sol,gridpoints] = solver.solve(ig);
@@ -72,22 +70,23 @@ ig{1}.add('R', gridpoints, rotRefCell);
 %% plot solution
 t_states = gridpoints.states.value;
 t_controls = gridpoints.controls.value;
-t_collocation = gridpoints.integrator(:).value;
+t_algvars = gridpoints.algvars.value;
 
 traj_p = sol.states.p.value;
 traj_v = sol.states.v.value;
 traj_omega = sol.states.omega.value;
 traj_R = sol.states.R.value;
 
-traj_lambda = sol.controls.lambda.value;
 traj_omegad  = sol.controls.omegad.value;
+
+traj_lambda = sol.algvars.lambda.value;
 
 figure;hold on;grid on;
 subplot(5,1,1);plot(t_states,traj_p');  ylabel('p');legend({'x','y','z'});
 subplot(5,1,2);plot(t_states,traj_v'); ylabel('v');legend({'x','y','z'});
 subplot(5,1,3);plot(t_states,traj_omega');  ylabel('w');legend({'x','y','z'});
 subplot(5,1,4);plot(t_controls,traj_omegad');  ylabel('dw');legend({'x','y','z'});
-subplot(5,1,5);plot(t_controls,traj_lambda');  ylabel('lambda');
+subplot(5,1,5);plot(t_algvars,traj_lambda');  ylabel('lambda');
 
 
 airspeed = zeros(N+1,1);

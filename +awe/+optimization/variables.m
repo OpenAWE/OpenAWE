@@ -6,5 +6,6 @@ vh.addState('omega',[3,1]);
 
 vh.addControl('omegad',[3,1]);
 
-vh.addControl('lambda',[1,1]);
+vh.addAlgVar('lambda',[1,1]);
+
 

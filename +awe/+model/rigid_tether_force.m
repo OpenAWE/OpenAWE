@@ -1,5 +1,5 @@
 function r = rigid_tether_force(p,alpha,R,l,lambda,airspeed,airDensity,tetherDiameter,tetherDragCoefficient,tetherDensity)
-return tether force on body in navigation frame
+% return tether force on body in navigation frame
 
 tetherDrag      = 0.1250 * airDensity * airspeed^2 * ...
                        tetherDragCoefficient * tetherDiameter * l;
