@@ -2,16 +2,12 @@
 
 <img src="https://openocl.github.io/imgs/lemn.png" width="30%"> <img hspace="10" src="https://openocl.github.io/imgs/circ.png" width="30%">
 
+Unfortunatly the project is outdated and it is not possible to run the code at the moment.  
+
 ## Introduction
 
 Talk by Giovanni Licitra at the Airborne Wind Energy Conference 2017:
 [https://videoportal.uni-freiburg.de/video/OpenAWE-An-Open-Source-Toolbox-for-the-Optimization-of-AWE-Flight-Trajectories/c7ca160a8258512a3adb052646d26c21](https://videoportal.uni-freiburg.de/video/OpenAWE-An-Open-Source-Toolbox-for-the-Optimization-of-AWE-Flight-Trajectories/c7ca160a8258512a3adb052646d26c21)
-
-## Quick start
-
-* Clone master or [download OpenAWE](https://github.com/OpenAWE/OpenAWE/archive/master.zip)
-* Run `awe.optimization.main_power`
-* (optional) Get [HSL solver for iptop](http://www.hsl.rl.ac.uk/ipopt/) and set ```opts.ipopt.linear_solver = 'ma27';```
 
 ## Publications
 
